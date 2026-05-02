@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAF Construction - Building Dreams Into Reality</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-yellow: #FFD700;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f5f5f5;
+            --text-dark: #1a1a1a;
+            --text-light: #ffffff;
+            --text-muted: #666666;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background: #ffffff;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--text-dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-yellow);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: var(--text-dark);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-yellow);
+        }
+
+        .nav-cta {
+            background: var(--primary-yellow);
+            color: var(--text-dark);
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #ffffff 0%, #ffffff 50%, var(--dark-bg) 50%, var(--dark-bg) 100%);
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            padding: 140px 60px 0;
+            flex: 1;
+        }
+
+        .hero-text {
+            max-width: 600px;
+        }
+
+        .hero-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: 72px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--primary-yellow);
+            color: var(--text-dark);
+            padding: 18px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .hero-cta-arrow {
+            width: 24px;
+            height: 24px;
+            background: var(--text-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-yellow);
+        }
+
+        /* Three.js Canvas Container */
+        #video-canvas-container {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60%;
+            height: 80vh;
+            z-index: 5;
+        }
+
+        #video-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--primary-yellow), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+            50% { opacity: 1; transform: scaleY(1); }
+        }
+
+        /* Services Section */
+        .services {
+            padding: 120px 60px;
+            background: #ffffff;
+        }
+
+        .section-header {
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .service-card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 40px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            border-color: var(--primary-yellow);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .service-card.featured {
+            background: var(--dark-bg);
+            border-color: var(--dark-bg);
+        }
+
+        .service-card.featured .service-title,
+        .service-card.featured .service-desc {
+            color: var(--text-light);
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-yellow);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 28px;
+        }
+
+        .service-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .service-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .service-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            color: var(--primary-yellow);
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        /* Infrastructure Section */
+        .infrastructure {
+            padding: 120px 60px;
+            background: #ffffff;
+        }
+
+        .infra-header {
+            max-width: 600px;
+            margin-bottom: 60px;
+        }
+
+        .infra-image-wrapper {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 60px;
+        }
+
+        .infra-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Projects Section */
+        .projects {
+            padding: 120px 60px;
+            background: var(--dark-bg);
+        }
+
+        .projects .section-title {
+            color: var(--text-light);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .project-card {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            aspect-ratio: 4/5;
+            cursor: pointer;
+        }
+
+        .project-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .project-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .project-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 30px;
+        }
+
+        .project-category {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--primary-yellow);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .project-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            padding: 120px 60px;
+            background: #ffffff;
+        }
+
+        .testimonial-card {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .testimonial-image {
+            flex: 0 0 300px;
+        }
+
+        .testimonial-image img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .testimonial-content {
+            flex: 1;
+        }
+
+        .testimonial-quote {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--text-dark);
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .author-info h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .author-info p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* News Section */
+        .news {
+            padding: 120px 60px;
+            background: var(--light-bg);
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .news-card {
+            display: flex;
+            gap: 24px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .news-image {
+            flex: 0 0 180px;
+            height: 140px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-content {
+            flex: 1;
+        }
+
+        .news-date {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--primary-yellow);
+            margin-bottom: 8px;
+        }
+
+        .news-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .news-link {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 120px 60px;
+            background: var(--dark-bg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-bg-pattern {
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-title {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--primary-yellow);
+            color: var(--text-dark);
+            padding: 20px 48px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 80px 60px 40px;
+            background: #0f0f0f;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-yellow);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+        }
+
+        .footer-desc {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .social-link {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--primary-yellow);
+            color: var(--text-dark);
+        }
+
+        .footer-column h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            font-size: 14px;
+            color: #888;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-yellow);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #2a2a2a;
+            padding-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Video Fallback */
+        .video-fallback {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60%;
+            height: 80vh;
+            z-index: 5;
+            display: none;
+        }
+
+        .video-fallback img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-title { font-size: 48px; }
+            .services-grid,
+            .projects-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .testimonial-card { flex-direction: column; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+            #video-canvas-container { width: 100%; height: 50vh; top: auto; bottom: 0; transform: none; }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 20px 30px; }
+            .nav-links { display: none; }
+            .hero-content { padding: 120px 30px 0; }
+            .hero-title { font-size: 36px; }
+            .services, .infrastructure, .projects, .testimonials, .news, .cta, .footer { padding: 80px 30px; }
+            .services-grid,
+            .projects-grid,
+            .stats-grid { grid-template-columns: 1fr; }
+            .news-grid { grid-template-columns: 1fr; }
+            .news-card { flex-direction: column; }
+            .news-image { flex: none; width: 100%; }
+            .section-title { font-size: 32px; }
+            .cta-title { font-size: 36px; }
+            .footer-grid { grid-template-columns: 1fr; }
+            #video-canvas-container { display: none; }
+            .video-fallback { display: block; width: 100%; height: 40vh; bottom: 0; top: auto; transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <div class="logo-icon">C</div>
+            CAF
+        </a>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#news">News</a></li>
+        </ul>
+        <a href="#contact" class="nav-cta">Get a Quote</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-label">// CONSTRUCTION</p>
+                <h1 class="hero-title">Building Dreams<br>Into Reality</h1>
+                <a href="#services" class="hero-cta">
+                    Get Started
+                    <span class="hero-cta-arrow">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Three.js Canvas for Video -->
+        <div id="video-canvas-container">
+            <canvas id="video-canvas"></canvas>
+        </div>
+
+        <!-- Fallback image for mobile -->
+        <div class="video-fallback">
+            <img src="https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=800" alt="Construction Equipment">
+        </div>
+
+        <div class="scroll-indicator">
+            <span>SCROLL</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="section-header">
+            <p class="section-label">// WHAT WE OFFER</p>
+            <h2 class="section-title">A Comprehensive Set Of<br>Services</h2>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🏗️</div>
+                <h3 class="service-title">New Construction</h3>
+                <p class="service-desc">From residential homes to commercial buildings, we bring your vision to life with quality craftsmanship and attention to detail.</p>
+                <a href="#" class="service-link">Learn More →</a>
+            </div>
+            <div class="service-card featured">
+                <div class="service-icon">🏢</div>
+                <h3 class="service-title">Commercial Construction</h3>
+                <p class="service-desc">Specialized in large-scale commercial projects including offices, retail spaces, and industrial facilities with modern infrastructure.</p>
+                <a href="#" class="service-link">Learn More →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🔨</div>
+                <h3 class="service-title">Renovation & Remodeling</h3>
+                <p class="service-desc">Transform existing spaces with our expert renovation services. We modernize structures while preserving their character.</p>
+                <a href="#" class="service-link">Learn More →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Infrastructure Section -->
+    <section class="infrastructure" id="about">
+        <div class="infra-header">
+            <p class="section-label">// OUR EXPERTISE</p>
+            <h2 class="section-title">Sustainable And Innovative<br>Development Infrastructure</h2>
+        </div>
+        <div class="infra-image-wrapper">
+            <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200" alt="Construction Site" class="infra-image">
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">400+</div>
+                <div class="stat-label">Projects Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">11+</div>
+                <div class="stat-label">Years Experience</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">90+</div>
+                <div class="stat-label">Expert Workers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Client Satisfaction</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="projects" id="projects">
+        <div class="section-header">
+            <p class="section-label">// PORTFOLIO</p>
+            <h2 class="section-title">Take A Look At Our Latest<br>Projects</h2>
+        </div>
+        <div class="projects-grid">
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600" alt="Atlas Museum">
+                <div class="project-overlay">
+                    <p class="project-category">Commercial</p>
+                    <h3 class="project-name">Atlas Museum</h3>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600" alt="Axel Towers">
+                <div class="project-overlay">
+                    <p class="project-category">Residential</p>
+                    <h3 class="project-name">Axel Towers</h3>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1545558014-869d7f09f696?w=600" alt="Glass Hotel">
+                <div class="project-overlay">
+                    <p class="project-category">Hospitality</p>
+                    <h3 class="project-name">Glass Hotel</h3>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600" alt="The Roof Building">
+                <div class="project-overlay">
+                    <p class="project-category">Commercial</p>
+                    <h3 class="project-name">The Roof Building</h3>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1513828583688-c52646db42da?w=600" alt="Bridge River">
+                <div class="project-overlay">
+                    <p class="project-category">Infrastructure</p>
+                    <h3 class="project-name">Bridge River</h3>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600" alt="The Lost Mountain">
+                <div class="project-overlay">
+                    <p class="project-category">Residential</p>
+                    <h3 class="project-name">The Lost Mountain</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="section-header">
+            <p class="section-label">// TESTIMONIALS</p>
+            <h2 class="section-title">What Our Clients Say<br>About Us</h2>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-image">
+                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400" alt="Client">
+            </div>
+            <div class="testimonial-content">
+                <p class="testimonial-quote">"Outstanding customer support! They went above and beyond to help me resolve my issue. Highly recommend their construction services for anyone looking for quality and reliability."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">CK</div>
+                    <div class="author-info">
+                        <h4>Cooper Kristin</h4>
+                        <p>CEO, TechVentures Inc.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Section -->
+    <section class="news" id="news">
+        <div class="section-header">
+            <p class="section-label">// LATEST NEWS</p>
+            <h2 class="section-title">Latest News &<br>Articles</h2>
+        </div>
+        <div class="news-grid">
+            <div class="news-card">
+                <div class="news-image">
+                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400" alt="News">
+                </div>
+                <div class="news-content">
+                    <p class="news-date">Jan 15, 2026</p>
+                    <h3 class="news-title">The Unseen Of Spending Three Years At Pixelgrade</h3>
+                    <a href="#" class="news-link">Read More →</a>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400" alt="News">
+                </div>
+                <div class="news-content">
+                    <p class="news-date">Jan 12, 2026</p>
+                    <h3 class="news-title">25 Color Trends Designers Can't Wait To See In 2026</h3>
+                    <a href="#" class="news-link">Read More →</a>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400" alt="News">
+                </div>
+                <div class="news-content">
+                    <p class="news-date">Jan 08, 2026</p>
+                    <h3 class="news-title">15 Mind-Blowing Floor Designs To Make Your Home Look Great</h3>
+                    <a href="#" class="news-link">Read More →</a>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-image">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400" alt="News">
+                </div>
+                <div class="news-content">
+                    <p class="news-date">Jan 05, 2026</p>
+                    <h3 class="news-title">Understanding The Impact Of Sustainable Materials</h3>
+                    <a href="#" class="news-link">Read More →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta" id="contact">
+        <div class="cta-bg-pattern"></div>
+        <div class="cta-content">
+            <h2 class="cta-title">Start Building With<br>Confidence Today</h2>
+            <a href="#" class="cta-btn">
+                Get In Touch
+                <span>→</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">C</div>
+                    CAF
+                </div>
+                <p class="footer-desc">Building tomorrow's landmarks with today's innovation. Quality construction services for residential and commercial projects.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link">f</a>
+                    <a href="#" class="social-link">t</a>
+                    <a href="#" class="social-link">in</a>
+                    <a href="#" class="social-link">ig</a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Our Team</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Projects</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Residential</a></li>
+                    <li><a href="#">Commercial</a></li>
+                    <li><a href="#">Industrial</a></li>
+                    <li><a href="#">Infrastructure</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Contact</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Get a Quote</a></li>
+                    <li><a href="#">Support</a></li>
+                    <li><a href="#">Locations</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="footer-copyright">© 2026 CAF Construction. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Three.js and Video Scroll Script -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        // Check for mobile/touch devices
+        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
+        if (!isTouchDevice) {
+            // Setup Three.js scene
+            const container = document.getElementById('video-canvas-container');
+            const canvas = document.getElementById('video-canvas');
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Create video element
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous';
+            video.muted = true;
+            video.playsInline = true;
+            video.loop = false;
+            video.preload = 'auto';
+
+            // Use a construction equipment video from a CDN
+            // Fallback to using an image sequence simulation if video fails
+            video.src = 'https://cdn.coverr.co/videos/coverr-construction-site-at-sunset-3395/1080p.mp4';
+
+            // Create video texture
+            const videoTexture = new THREE.VideoTexture(video);
+            videoTexture.minFilter = THREE.LinearFilter;
+            videoTexture.magFilter = THREE.LinearFilter;
+            videoTexture.format = THREE.RGBFormat;
+
+            // Create plane geometry for the video
+            const geometry = new THREE.PlaneGeometry(16, 9);
+            const material = new THREE.MeshBasicMaterial({
+                map: videoTexture,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+            scene.add(plane);
+
+            // Add yellow glow effect behind the video
+            const glowGeometry = new THREE.PlaneGeometry(18, 11);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFFD700,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const glowPlane = new THREE.Mesh(glowGeometry, glowMaterial);
+            glowPlane.position.z = -0.5;
+            scene.add(glowPlane);
+
+            // Position camera
+            camera.position.z = 8;
+
+            // Scroll-based video control
+            let lastScrollY = window.scrollY;
+            let targetTime = 0;
+            let currentTime = 0;
+            let isVideoLoaded = false;
+            let videoDuration = 5; // Fallback duration
+
+            // Video event handlers
+            video.addEventListener('loadedmetadata', () => {
+                videoDuration = video.duration || 5;
+                isVideoLoaded = true;
+                video.currentTime = 0;
+            });
+
+            video.addEventListener('canplay', () => {
+                isVideoLoaded = true;
+            });
+
+            // Handle video error - create fallback with animated image
+            video.addEventListener('error', () => {
+                console.log('Video loading error - using fallback');
+                createImageFallback();
+            });
+
+            // Fallback function using animated images
+            function createImageFallback() {
+                const images = [
+                    'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=800',
+                    'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800',
+                    'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800',
+                    'https://images.unsplash.com/photo-1587582423116-ec07293f039d?w=800'
+                ];
+
+                const textureLoader = new THREE.TextureLoader();
+                const textures = [];
+                let loadedCount = 0;
+
+                images.forEach((url, index) => {
+                    textureLoader.load(url, (texture) => {
+                        textures[index] = texture;
+                        loadedCount++;
+                        if (loadedCount === images.length) {
+                            startImageAnimation(textures);
+                        }
+                    });
+                });
+            }
+
+            let imageTextures = [];
+            let currentImageIndex = 0;
+
+            function startImageAnimation(textures) {
+                imageTextures = textures;
+                videoDuration = textures.length;
+                isVideoLoaded = true;
+                plane.material.map = textures[0];
+                plane.material.needsUpdate = true;
+            }
+
+            // Scroll handler with smooth interpolation
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                const scrollProgress = Math.min(scrollY / (maxScroll * 0.3), 1);
+                targetTime = scrollProgress * videoDuration;
+            }, { passive: true });
+
+            // Animation loop
+            let animationId;
+            const clock = new THREE.Clock();
+
+            function animate() {
+                animationId = requestAnimationFrame(animate);
+
+                const delta = clock.getDelta();
+
+                // Smooth interpolation for video time
+                if (isVideoLoaded) {
+                    const lerpSpeed = 5 * delta;
+                    currentTime += (targetTime - currentTime) * lerpSpeed;
+
+                    if (imageTextures.length > 0) {
+                        // Image sequence mode
+                        const newIndex = Math.floor(currentTime) % imageTextures.length;
+                        if (newIndex !== currentImageIndex && imageTextures[newIndex]) {
+                            currentImageIndex = newIndex;
+                            plane.material.map = imageTextures[currentImageIndex];
+                            plane.material.needsUpdate = true;
+                        }
+                    } else if (video.readyState >= 2) {
+                        // Video mode
+                        video.currentTime = currentTime;
+                    }
+                }
+
+                // Subtle rotation based on scroll
+                const scrollY = window.scrollY;
+                plane.rotation.y = Math.sin(scrollY * 0.001) * 0.1;
+                plane.rotation.x = Math.cos(scrollY * 0.001) * 0.05;
+
+                // Pulse the glow
+                const time = clock.getElapsedTime();
+                glowMaterial.opacity = 0.2 + Math.sin(time * 2) * 0.1;
+
+                renderer.render(scene, camera);
+            }
+
+            // Start animation
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            // Start video loading
+            video.load();
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                cancelAnimationFrame(animationId);
+                video.pause();
+                video.src = '';
+                video.remove();
+            });
+        }
+
+        // Navbar scroll effect
+        const navbar = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        }, { passive: true });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

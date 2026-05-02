@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMNEX - True Wireless Earbuds</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-gradient: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16162a 100%);
+            --accent-gold: #c9a962;
+            --accent-purple: #7c7cff;
+            --text-white: #ffffff;
+            --text-gray: #a0a0b0;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-white);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-chips {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-chip.new {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .nav-chip.count {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-gray);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-white);
+            letter-spacing: 2px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-btn, .user-btn {
+            padding: 10px 20px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-white);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover, .user-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-gold);
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--bg-dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            background: var(--bg-gradient);
+            display: flex;
+            padding: 120px 48px 48px;
+            gap: 40px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(124, 124, 255, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            max-width: 500px;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 360px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+
+        .btn-primary {
+            padding: 16px 32px;
+            background: var(--accent-gold);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(201, 169, 98, 0.4);
+        }
+
+        .btn-secondary {
+            padding: 16px 32px;
+            background: transparent;
+            color: var(--text-white);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-gold);
+            background: rgba(201, 169, 98, 0.1);
+        }
+
+        .scroll-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-gray);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .scroll-arrow {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+
+        /* Three.js Canvas Container */
+        #hero-canvas-container {
+            flex: 1.5;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #hero-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Hero Right - Product Cards */
+        .hero-right {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 40px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: rgba(201, 169, 98, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .product-card-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card-image img {
+            width: 70%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .product-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-card-subtitle {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-bottom: 12px;
+        }
+
+        .product-card-link {
+            font-size: 11px;
+            color: var(--accent-gold);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 48px;
+            background: var(--bg-dark);
+            position: relative;
+        }
+
+        .section-label {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .features-content {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .features-text {
+            flex: 1;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 52px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 16px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(201, 169, 98, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .feature-content h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .feature-content p {
+            font-size: 14px;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        /* Trust Section */
+        .trust {
+            padding: 80px 48px;
+            background: linear-gradient(to bottom, var(--bg-dark), #0f0f18);
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .trust-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .trust-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .trust-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .trust-text {
+            font-size: 12px;
+            color: var(--text-gray);
+            max-width: 180px;
+            line-height: 1.5;
+        }
+
+        .trust-badge {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            padding: 12px 24px;
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .trust-badge strong {
+            color: var(--accent-gold);
+        }
+
+        /* Handcrafted Section */
+        .handcrafted {
+            padding: 120px 48px;
+            background: var(--bg-gradient);
+            position: relative;
+        }
+
+        .handcrafted-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .handcrafted .section-title {
+            margin-bottom: 24px;
+        }
+
+        .handcrafted-text {
+            font-size: 16px;
+            color: var(--text-gray);
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        .handcrafted-link {
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Specs Section */
+        .specs {
+            padding: 120px 48px;
+            background: var(--bg-dark);
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .spec-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .spec-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-8px);
+        }
+
+        .spec-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 8px;
+        }
+
+        .spec-unit {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .spec-label {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-top: 8px;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 160px 48px;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, var(--bg-dark) 70%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 169, 98, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button {
+            position: relative;
+            z-index: 1;
+            padding: 20px 48px;
+            background: var(--accent-gold);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(201, 169, 98, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 80px 48px 40px;
+            background: #050508;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--bg-dark);
+        }
+
+        .footer-desc {
+            font-size: 14px;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .footer-column h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-white);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            font-size: 14px;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-gold);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--card-border);
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .social-link:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            transform: translateY(-2px);
+        }
+
+        /* Product Fallback */
+        .product-fallback {
+            display: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        .product-fallback img {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .hero { flex-direction: column; }
+            .hero-right { width: 100%; flex-direction: row; }
+            .specs-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 16px 24px; }
+            .nav-chips { display: none; }
+            .hero { padding: 100px 24px 48px; }
+            .hero-title { font-size: 40px; }
+            .hero-right { display: none; }
+            #hero-canvas-container { display: none; }
+            .product-fallback { display: block; }
+            .section-title { font-size: 32px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .specs-grid { grid-template-columns: 1fr; }
+            .trust-content { flex-direction: column; gap: 24px; text-align: center; }
+            .cta-title { font-size: 36px; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-chips">
+                <span class="nav-chip new">New</span>
+                <span class="nav-chip count">50</span>
+            </div>
+        </div>
+        <a href="#" class="logo">
+            <div class="logo-icon">✦</div>
+            <span class="logo-text">LUMNEX</span>
+        </a>
+        <div class="nav-right">
+            <a href="#" class="search-btn">🔍 Search</a>
+            <a href="#" class="user-btn">
+                <div class="user-avatar">JD</div>
+                Welcome
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-left">
+            <h1 class="hero-title">TRUE WIRELESS EARBUDS</h1>
+            <p class="hero-subtitle">Sleek and modern earbuds with premium sound quality. Experience audio like never before with active noise cancellation and crystal-clear calls.</p>
+            <div class="hero-buttons">
+                <button class="btn-primary">Shop Now</button>
+                <button class="btn-secondary">Explore</button>
+            </div>
+            <div class="scroll-indicator">
+                <span>Scroll Down</span>
+                <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+
+        <!-- Three.js Canvas for 3D Product Animation -->
+        <div id="hero-canvas-container">
+            <canvas id="hero-canvas"></canvas>
+        </div>
+
+        <!-- Product Fallback for Mobile -->
+        <div class="product-fallback">
+            <img src="https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600" alt="Wireless Earbuds">
+        </div>
+
+        <div class="hero-right">
+            <div class="product-card">
+                <div class="product-card-image">
+                    <img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400" alt="Earbuds">
+                </div>
+                <h3 class="product-card-title">True Wireless Earbuds</h3>
+                <p class="product-card-subtitle">Sleek and modern earbuds with premium sound.</p>
+                <a href="#" class="product-card-link">Shop Now →</a>
+            </div>
+            <div class="product-card">
+                <div class="product-card-image">
+                    <img src="https://images.unsplash.com/photo-1544117519-31a4b71922bb?w=400" alt="Smart Watch">
+                </div>
+                <h3 class="product-card-title">Smart Watch</h3>
+                <p class="product-card-subtitle">Elegant smartwatch designed for style and function.</p>
+                <a href="#" class="product-card-link">Shop Now →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Section -->
+    <section class="trust">
+        <div class="trust-content">
+            <div class="trust-left">
+                <div class="trust-logo">TRUE WIRELESS EARBUDS</div>
+                <p class="trust-text">Premium audio technology for the modern lifestyle</p>
+            </div>
+            <div class="trust-badge">
+                Trusted by <strong>12,000+</strong> Users Worldwide • Rated <strong>4.9/5</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <p class="section-label">// Features</p>
+        <div class="features-content">
+            <div class="features-text">
+                <h2 class="section-title">Designed for<br>Perfection</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🔊</div>
+                        <div class="feature-content">
+                            <h3>Active Noise Cancellation</h3>
+                            <p>Block out the world and immerse yourself in pure audio bliss with our advanced ANC technology.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔋</div>
+                        <div class="feature-content">
+                            <h3>36-Hour Battery Life</h3>
+                            <p>All-day power with the charging case. Quick charge gives you 3 hours of playback in just 10 minutes.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💧</div>
+                        <div class="feature-content">
+                            <h3>IPX7 Water Resistance</h3>
+                            <p>Sweat and splash resistant design perfect for workouts and outdoor adventures.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📡</div>
+                        <div class="feature-content">
+                            <h3>Bluetooth 5.3</h3>
+                            <p>Seamless connectivity with extended range and crystal-clear audio transmission.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Handcrafted Section -->
+    <section class="handcrafted">
+        <div class="handcrafted-content">
+            <p class="section-label">// Craftsmanship</p>
+            <h2 class="section-title">Handcrafted With Love</h2>
+            <p class="handcrafted-text">Every product is thoughtfully designed with meticulous attention to detail, using high-quality materials and modern craftsmanship. We focus on creating elegant, durable, and beautifully crafted pieces that bring both functionality and joy to your everyday life. From the precision-engineered drivers to the premium finish, every element speaks excellence.</p>
+            <a href="#" class="handcrafted-link">Discover More →</a>
+        </div>
+    </section>
+
+    <!-- Specs Section -->
+    <section class="specs">
+        <p class="section-label" style="text-align: center; margin-bottom: 60px;">// Specifications</p>
+        <div class="specs-grid">
+            <div class="spec-card">
+                <div class="spec-value">36<span class="spec-unit">h</span></div>
+                <div class="spec-label">Total Battery Life</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-value">5<span class="spec-unit">h</span></div>
+                <div class="spec-label">Single Charge</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-value">10<span class="spec-unit">min</span></div>
+                <div class="spec-label">Fast Charge</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-value">IPX<span class="spec-unit">7</span></div>
+                <div class="spec-label">Water Resistance</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2 class="cta-title">Experience Sound<br>Like Never Before</h2>
+        <button class="cta-button">Get Yours Now</button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">✦</div>
+                    LUMNEX
+                </div>
+                <p class="footer-desc">Premium audio technology for the modern lifestyle. Experience sound in its purest form.</p>
+            </div>
+            <div class="footer-column">
+                <h4>Products</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Earbuds</a></li>
+                    <li><a href="#">Smart Watch</a></li>
+                    <li><a href="#">Accessories</a></li>
+                    <li><a href="#">Bundles</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Warranty</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="footer-copyright">© 2026 LUMNEX. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="#" class="social-link">f</a>
+                <a href="#" class="social-link">t</a>
+                <a href="#" class="social-link">in</a>
+                <a href="#" class="social-link">ig</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Three.js and Scroll Animation Script -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        // Check for mobile/touch devices
+        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
+        if (!isTouchDevice) {
+            const container = document.getElementById('hero-canvas-container');
+            const canvas = document.getElementById('hero-canvas');
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const spotLight = new THREE.SpotLight(0xc9a962, 2);
+            spotLight.position.set(5, 10, 5);
+            spotLight.angle = Math.PI / 6;
+            spotLight.penumbra = 0.5;
+            scene.add(spotLight);
+
+            const rimLight = new THREE.PointLight(0x7c7cff, 1, 100);
+            rimLight.position.set(-5, 5, -5);
+            scene.add(rimLight);
+
+            // Create earbud case geometry (simplified)
+            const caseGroup = new THREE.Group();
+
+            // Main case body
+            const caseGeometry = new THREE.CapsuleGeometry(1.2, 1.8, 4, 16);
+            const caseMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x1a1a2e,
+                metalness: 0.8,
+                roughness: 0.2,
+                clearcoat: 1,
+                clearcoatRoughness: 0.1
+            });
+            const caseMesh = new THREE.Mesh(caseGeometry, caseMaterial);
+            caseGroup.add(caseMesh);
+
+            // Case lid line
+            const lidGeometry = new THREE.TorusGeometry(0.9, 0.02, 8, 32);
+            const lidMaterial = new THREE.MeshBasicMaterial({ color: 0x333344 });
+            const lidMesh = new THREE.Mesh(lidGeometry, lidMaterial);
+            lidMesh.rotation.x = Math.PI / 2;
+            lidMesh.position.y = 0.5;
+            caseGroup.add(lidMesh);
+
+            // LED indicator
+            const ledGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+            const ledMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+            const ledMesh = new THREE.Mesh(ledGeometry, ledMaterial);
+            ledMesh.position.set(0, -0.8, 1.1);
+            caseGroup.add(ledMesh);
+
+            // Left earbud
+            const earbudGeometry = new THREE.CapsuleGeometry(0.35, 0.9, 4, 12);
+            const earbudMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x0f0f1a,
+                metalness: 0.6,
+                roughness: 0.3,
+                clearcoat: 0.8
+            });
+
+            const leftEarbud = new THREE.Mesh(earbudGeometry, earbudMaterial);
+            leftEarbud.position.set(-0.8, 0.5, 0.5);
+            leftEarbud.rotation.z = -0.3;
+            leftEarbud.rotation.x = 0.2;
+            caseGroup.add(leftEarbud);
+
+            // Right earbud
+            const rightEarbud = new THREE.Mesh(earbudGeometry, earbudMaterial);
+            rightEarbud.position.set(0.8, 0.5, 0.5);
+            rightEarbud.rotation.z = 0.3;
+            rightEarbud.rotation.x = 0.2;
+            caseGroup.add(rightEarbud);
+
+            // Charging dock/base
+            const baseGeometry = new THREE.CylinderGeometry(2, 2.2, 0.2, 64);
+            const baseMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x161626,
+                metalness: 0.9,
+                roughness: 0.1,
+                clearcoat: 1
+            });
+            const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
+            baseMesh.position.y = -0.9;
+            caseGroup.add(baseMesh);
+
+            scene.add(caseGroup);
+
+            // Particle system for ambient effect
+            const particleCount = 50;
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                particlePositions[i] = (Math.random() - 0.5) * 10;
+                particlePositions[i + 1] = (Math.random() - 0.5) * 10;
+                particlePositions[i + 2] = (Math.random() - 0.5) * 10;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                color: 0xc9a962,
+                size: 0.03,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+
+            // Camera position
+            camera.position.z = 6;
+
+            // Scroll-based animation
+            let scrollProgress = 0;
+            let targetScrollProgress = 0;
+
+            window.addEventListener('scroll', () => {
+                const maxScroll = document.body.scrollHeight - window.innerHeight;
+                targetScrollProgress = Math.min(window.scrollY / (maxScroll * 0.5), 1);
+            }, { passive: true });
+
+            // Animation loop
+            const clock = new THREE.Clock();
+            let animationId;
+
+            function animate() {
+                animationId = requestAnimationFrame(animate);
+
+                const delta = clock.getDelta();
+                const elapsedTime = clock.getElapsedTime();
+
+                // Smooth scroll interpolation
+                scrollProgress += (targetScrollProgress - scrollProgress) * 5 * delta;
+
+                // Case rotation based on scroll
+                // Start: Front view, End: Open case with floating earbuds
+                caseGroup.rotation.y = scrollProgress * Math.PI * 1.5;
+                caseGroup.rotation.x = scrollProgress * 0.3;
+
+                // Floating animation
+                caseGroup.position.y = Math.sin(elapsedTime * 0.5) * 0.1;
+
+                // Earbuds fly out animation at 50%+ scroll
+                if (scrollProgress > 0.5) {
+                    const flyOutProgress = (scrollProgress - 0.5) * 2;
+                    leftEarbud.position.x = -0.8 - flyOutProgress * 0.5;
+                    leftEarbud.position.y = 0.5 + flyOutProgress * 1.2;
+                    leftEarbud.rotation.z = -0.3 - flyOutProgress * 0.5;
+
+                    rightEarbud.position.x = 0.8 + flyOutProgress * 0.5;
+                    rightEarbud.position.y = 0.5 + flyOutProgress * 1.2;
+                    rightEarbud.rotation.z = 0.3 + flyOutProgress * 0.5;
+
+                    // Case opens
+                    caseMesh.rotation.z = -flyOutProgress * 0.3;
+                } else {
+                    // Reset positions
+                    leftEarbud.position.x = -0.8;
+                    leftEarbud.position.y = 0.5;
+                    leftEarbud.rotation.z = -0.3;
+
+                    rightEarbud.position.x = 0.8;
+                    rightEarbud.position.y = 0.5;
+                    rightEarbud.rotation.z = 0.3;
+
+                    caseMesh.rotation.z = 0;
+                }
+
+                // LED pulse
+                const ledPulse = 0.5 + Math.sin(elapsedTime * 2) * 0.5;
+                ledMaterial.opacity = ledPulse;
+
+                // Particle animation
+                particles.rotation.y = elapsedTime * 0.05;
+                particles.rotation.x = elapsedTime * 0.02;
+
+                // Camera subtle movement
+                camera.position.x = Math.sin(elapsedTime * 0.3) * 0.2;
+                camera.position.y = Math.cos(elapsedTime * 0.2) * 0.1;
+                camera.lookAt(0, 0, 0);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            // Cleanup
+            window.addEventListener('beforeunload', () => {
+                cancelAnimationFrame(animationId);
+            });
+        }
+
+        // Feature section reveal on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for fade-in
+        document.querySelectorAll('.feature-item, .spec-card, .product-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
