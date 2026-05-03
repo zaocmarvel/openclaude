@@ -24,9 +24,10 @@ model User {
   bio           String?
   avatar        String?
   banner        String?
-  isVerified    Boolean   @default(false)
-  isPrivate     Boolean   @default(false)
-  emailVerified DateTime?
+  isVerified         Boolean   @default(false)
+  isPrivate          Boolean   @default(false)
+  emailVerified      DateTime?
+  onboardingCompleted Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
