@@ -88,13 +88,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create personality profile
-    await prisma.personalityProfile.create({
-      data: {
-        userId: user.id,
-      },
-    });
-
     return NextResponse.json(
       {
         success: true,
