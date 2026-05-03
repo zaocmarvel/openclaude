@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireApiAuth } from '@/lib/auth';
 import { createNotification } from '@/lib/services/notifications';
+import { NotificationType } from '@prisma/client';
 
 // POST - Guess who sent an anonymous bro
 export async function POST(
@@ -27,6 +28,7 @@ export async function POST(
       where: { id },
       include: {
         sender: true,
+        receiver: true,
         guessAttempts: true,
       },
     });
@@ -87,7 +89,7 @@ export async function POST(
       data: {
         broId: id,
         userId: auth.userId,
-        guessedUserId,
+        guessedId: guessedUserId,
         isCorrect,
       },
     });
@@ -98,14 +100,13 @@ export async function POST(
         where: { id },
         data: {
           revealedAt: new Date(),
-          guessedCorrectly: true,
         },
       });
 
       // Notify sender that they were guessed
       await createNotification({
         userId: bro.senderId,
-        type: 'GUESS_RESULT',
+        type: 'MENTION' as NotificationType,
         title: 'Your identity was revealed!',
         message: `${bro.receiver?.displayName || 'Someone'} correctly guessed that you sent them a bro!`,
         broId: id,
@@ -183,7 +184,6 @@ export async function GET(
         remainingGuesses: Math.max(0, maxGuesses - guessCount),
         isRevealed,
         sender: isRevealed ? bro.sender : null,
-        guessedCorrectly: bro.guessedCorrectly,
       },
     });
   } catch (error) {

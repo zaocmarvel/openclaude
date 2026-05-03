@@ -195,7 +195,7 @@ export default function FeedCard({ bro }: FeedCardProps) {
         {/* Views */}
         <div className="flex items-center gap-1 text-sm text-dark-muted ml-auto">
           <Eye className="w-4 h-4" />
-          <span>{bro.engagementMetrics?.viewCount || bro.reactionCount * 10}</span>
+          <span>{bro.reactionCount * 10}</span>
         </div>
       </div>
     </motion.div>

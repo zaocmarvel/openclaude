@@ -55,15 +55,6 @@ export async function GET(req: NextRequest) {
     const nearbyUsers = await prisma.user.findMany({
       where: {
         id: { notIn: blockedUserIds },
-        AND: {
-          NOT: {
-            blocksIssued: {
-              some: {
-                receiverId: auth.userId,
-              },
-            },
-          },
-        },
         latitude: {
           gte: userLat - latDelta,
           lte: userLat + latDelta,

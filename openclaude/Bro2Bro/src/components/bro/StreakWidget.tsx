@@ -14,7 +14,8 @@ export default function StreakWidget() {
       try {
         const response = await streakApi.getStreaks('active');
         if (response.success && response.data) {
-          setStreaks(response.data.stats);
+          const data = response.data as { stats: { activeStreaks: number } };
+          setStreaks({ activeStreaks: data.stats.activeStreaks });
         }
       } catch (error) {
         console.error('Failed to load streaks:', error);

@@ -1,5 +1,5 @@
 import prisma from '../db';
-import { addHours, addMinutes, isAfter } from 'date-fns';
+import { addMinutes } from 'date-fns';
 import { InteractionType, BroType } from '@/types';
 
 interface RateLimitConfig {
@@ -40,63 +40,38 @@ export async function checkRateLimit(
   const windowStart = new Date(now.getTime() - config.windowMinutes * 60 * 1000);
   const resetAt = addMinutes(now, config.windowMinutes);
 
-  // Get current rate limit log
-  let rateLimit = await prisma.rateLimitLog.findFirst({
+  // Count interactions in the current window
+  const count = await prisma.interactionLog.count({
     where: {
       userId,
       action,
-      windowStart: {
+      createdAt: {
         gte: windowStart,
       },
     },
-    orderBy: {
-      windowStart: 'desc',
-    },
   });
 
-  if (!rateLimit) {
-    // Create new rate limit window
-    rateLimit = await prisma.rateLimitLog.create({
-      data: {
-        userId,
-        action,
-        count: 0,
-        windowStart,
-        resetAt,
-      },
-    });
-  }
+  const remaining = Math.max(0, config.maxRequests - count);
+  const isLimited = count >= config.maxRequests;
 
-  // Check if window has expired and needs reset
-  if (isAfter(now, rateLimit.resetAt)) {
-    rateLimit = await prisma.rateLimitLog.create({
-      data: {
-        userId,
-        action,
-        count: 0,
-        windowStart: now,
-        resetAt,
-      },
-    });
-  }
-
-  const remaining = Math.max(0, config.maxRequests - rateLimit.count);
-  const isLimited = rateLimit.count >= config.maxRequests;
-
-  // Increment count
+  // Log this interaction (increment count)
   if (!isLimited) {
-    await prisma.rateLimitLog.update({
-      where: { id: rateLimit.id },
-      data: { count: { increment: 1 } },
+    await prisma.interactionLog.create({
+      data: {
+        userId,
+        targetId: 'rate-limit-check',
+        targetType: 'RATE_LIMIT',
+        action,
+      },
     });
   }
 
   return {
     isLimited,
     remaining,
-    resetAt: rateLimit.resetAt,
+    resetAt,
     retryAfter: isLimited
-      ? Math.ceil((rateLimit.resetAt.getTime() - now.getTime()) / 1000)
+      ? Math.ceil((resetAt.getTime() - now.getTime()) / 1000)
       : undefined,
   };
 }
@@ -107,12 +82,12 @@ export async function checkRateLimit(
 export async function recordInteraction(
   userId: string,
   targetUserId: string | null,
-  type: InteractionType,
-  broType?: BroType,
+  type: string,
+  broType?: string,
   wasMutual: boolean = false
 ): Promise<void> {
   // Calculate interaction score based on type
-  const scoreWeights: Record<InteractionType, number> = {
+  const scoreWeights: Record<string, number> = {
     BRO_SENT: 1.0,
     BRO_RECEIVED: 0.8,
     REACTION_SENT: 0.6,
@@ -125,11 +100,10 @@ export async function recordInteraction(
   await prisma.interactionLog.create({
     data: {
       userId,
-      targetUserId,
-      type,
-      broType,
-      wasMutual,
-      score: scoreWeights[type] || 0.5,
+      targetId: targetUserId || 'unknown',
+      targetType: 'USER',
+      action: type,
+      metadata: JSON.stringify({ broType, wasMutual }),
     },
   });
 }
@@ -148,8 +122,8 @@ export async function getInteractionSummary(
   const interactions = await prisma.interactionLog.findMany({
     where: {
       OR: [
-        { userId: userId1, targetUserId: userId2 },
-        { userId: userId2, targetUserId: userId1 },
+        { userId: userId1, targetId: userId2 },
+        { userId: userId2, targetId: userId1 },
       ],
     },
     orderBy: { createdAt: 'desc' },
@@ -163,7 +137,19 @@ export async function getInteractionSummary(
     };
   }
 
-  const totalScore = interactions.reduce((sum, i) => sum + i.score, 0);
+  // Calculate score from metadata if available
+  const totalScore = interactions.reduce((sum, i) => {
+    if (i.metadata) {
+      try {
+        const meta = JSON.parse(i.metadata);
+        return sum + (meta.score || 0.5);
+      } catch {
+        return sum + 0.5;
+      }
+    }
+    return sum + 0.5;
+  }, 0);
+
   const timeDecay = Math.exp(
     -0.001 * (Date.now() - interactions[0].createdAt.getTime())
   );
@@ -176,15 +162,15 @@ export async function getInteractionSummary(
 }
 
 /**
- * Clean up old rate limit logs (run periodically)
+ * Clean up old interaction logs (run periodically)
  */
 export async function cleanupRateLimits(hoursToKeep: number = 24): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setHours(cutoffDate.getHours() - hoursToKeep);
 
-  const result = await prisma.rateLimitLog.deleteMany({
+  const result = await prisma.interactionLog.deleteMany({
     where: {
-      windowStart: {
+      createdAt: {
         lt: cutoffDate,
       },
     },

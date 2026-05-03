@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     // Check if already blocked
     const existingBlock = await prisma.block.findUnique({
       where: {
-        blockerId_blockedId: {
-          blockerId: auth.userId,
-          blockedId: userId,
+        issuerId_receiverId: {
+          issuerId: auth.userId,
+          receiverId: userId,
         },
       },
     });
@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
     // Create block
     const block = await prisma.block.create({
       data: {
-        blockerId: auth.userId,
-        blockedId: userId,
+        issuerId: auth.userId,
+        receiverId: userId,
         reason,
       },
     });
@@ -93,9 +93,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const blocks = await prisma.block.findMany({
-      where: { blockerId: auth.userId },
+      where: { issuerId: auth.userId },
       include: {
-        blocked: {
+        receiver: {
           select: {
             id: true,
             username: true,
@@ -137,8 +137,8 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.block.deleteMany({
       where: {
-        blockerId: auth.userId,
-        blockedId: userId,
+        issuerId: auth.userId,
+        receiverId: userId,
       },
     });
 

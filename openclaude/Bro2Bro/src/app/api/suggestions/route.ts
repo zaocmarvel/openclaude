@@ -32,25 +32,6 @@ export async function GET(req: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         id: { notIn: blockedUserIds },
-        AND: {
-          NOT: {
-            blocksIssued: {
-              some: {
-                receiverId: auth.userId,
-              },
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        username: true,
-        displayName: true,
-        image: true,
-        bio: true,
-        lastActiveAt: true,
-        latitude: true,
-        longitude: true,
       },
     });
 

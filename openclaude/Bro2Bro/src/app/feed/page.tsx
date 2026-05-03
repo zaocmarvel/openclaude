@@ -41,10 +41,11 @@ export default function FeedPage() {
       }
 
       if (response.success && response.data) {
-        const newBros = response.data.bros;
+        const data = response.data as { bros: BroWithDetails[]; hasMore: boolean; nextCursor?: string };
+        const newBros = data.bros;
         setBros(prev => reset ? newBros : [...prev, ...newBros]);
-        setHasMore(response.data.hasMore);
-        setCursor(response.data.nextCursor);
+        setHasMore(data.hasMore);
+        setCursor(data.nextCursor);
       }
     } catch (error) {
       console.error('Failed to load feed:', error);

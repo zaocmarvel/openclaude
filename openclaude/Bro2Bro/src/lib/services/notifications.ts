@@ -1,5 +1,5 @@
 import prisma from '../db';
-import { NotificationType } from '@/types';
+import { NotificationType } from '@prisma/client';
 
 interface CreateNotificationInput {
   userId: string;
@@ -16,16 +16,6 @@ interface CreateNotificationInput {
  */
 export async function createNotification(input: CreateNotificationInput) {
   const { userId, type, title, message, broId, senderId, actionUrl } = input;
-
-  // Don't create notification if user has notifications disabled
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { notificationsEnabled: true },
-  });
-
-  if (!user?.notificationsEnabled) {
-    return null;
-  }
 
   const notification = await prisma.notification.create({
     data: {

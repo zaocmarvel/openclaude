@@ -52,11 +52,20 @@ export default function ProfilePage() {
       ]);
 
       if (profileResponse.success && profileResponse.data) {
-        setProfile(profileResponse.data);
+        setProfile(profileResponse.data as {
+          username: string;
+          displayName?: string;
+          email: string;
+          bio?: string;
+          image?: string;
+          soundEnabled: boolean;
+          notificationsEnabled: boolean;
+        });
       }
 
       if (statsResponse.success && statsResponse.data) {
-        setStats(statsResponse.data.stats);
+        const statsData = statsResponse.data as { stats: ProfileStats };
+        setStats(statsData.stats);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);

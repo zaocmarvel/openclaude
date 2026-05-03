@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { getServerSession } from 'next-auth/next';
 import { authConfig } from '@/lib/auth';
+import { SessionProvider } from 'next-auth/react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SocketProvider } from '@/contexts/SocketContext';
 import { Toaster } from 'react-hot-toast';
@@ -45,34 +46,36 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} antialiased bg-dark-bg text-dark-text min-h-screen`}>
-        <AuthProvider>
-          <SocketProvider>
-            {children}
-            <Toaster
-              position="bottom-center"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#1a1a1a',
-                  color: '#f5f5f5',
-                  border: '1px solid #2a2a2a',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#0ea5e9',
-                    secondary: '#fff',
+        <SessionProvider session={session}>
+          <AuthProvider>
+            <SocketProvider>
+              {children}
+              <Toaster
+                position="bottom-center"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#1a1a1a',
+                    color: '#f5f5f5',
+                    border: '1px solid #2a2a2a',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                  success: {
+                    iconTheme: {
+                      primary: '#0ea5e9',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-          </SocketProvider>
-        </AuthProvider>
+                  error: {
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </SocketProvider>
+          </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

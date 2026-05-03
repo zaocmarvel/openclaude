@@ -35,7 +35,8 @@ export default function FeedPreview({ limit = 3 }: FeedPreviewProps) {
       try {
         const response = await feedApi.getTrending('24h');
         if (response.success && response.data) {
-          setBros(response.data.bros.slice(0, limit));
+          const data = response.data as { bros: Bro[] };
+          setBros(data.bros.slice(0, limit));
         }
       } catch (error) {
         console.error('Failed to load feed:', error);

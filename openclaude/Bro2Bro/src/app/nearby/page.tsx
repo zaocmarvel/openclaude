@@ -85,7 +85,7 @@ export default function NearbyPage() {
     try {
       const response = await nearbyApi.getNearby(radius);
       if (response.success && response.data) {
-        setNearbyData(response.data);
+        setNearbyData(response.data as NearbyData);
       }
     } catch (error) {
       console.error('Failed to load nearby users:', error);

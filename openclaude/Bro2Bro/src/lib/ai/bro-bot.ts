@@ -181,7 +181,7 @@ export async function checkAndSendBroBot(userId: string): Promise<BroBotMessage 
 async function generateBroBotMessage(config: BroBotConfig): Promise<BroBotMessage> {
   // Determine best bro type based on user context
   // (This would be more sophisticated in production, using ML)
-  const broTypes: BroType[] = ['RESPECT', 'FUNNY', 'MOTIVATIONAL', 'COLD', 'HEARTBREAK'];
+  const broTypes: BroType[] = ['RESPECT', 'FUNNY', 'COLD', 'HEARTBREAK', 'AGGRESSIVE'];
   const selectedType = broTypes[Math.floor(Math.random() * broTypes.length)];
 
   // Get prompts for this type

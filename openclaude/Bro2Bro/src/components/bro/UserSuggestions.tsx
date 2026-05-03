@@ -19,7 +19,8 @@ export default function UserSuggestions({ limit = 5 }: UserSuggestionsProps) {
       try {
         const response = await suggestionsApi.getSuggestions(false, limit);
         if (response.success && response.data) {
-          setSuggestions(response.data.suggestions);
+          const data = response.data as { suggestions: BroSuggestion[] };
+          setSuggestions(data.suggestions);
         }
       } catch (error) {
         console.error('Failed to load suggestions:', error);

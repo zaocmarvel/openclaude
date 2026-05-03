@@ -67,7 +67,7 @@ async function checkRapidSending(userId: string): Promise<FlagResult> {
     const severity = recentBros > 20 ? 5 : recentBros > 15 ? 4 : 3;
     const reason = `Excessive bro sending: ${recentBros} in 5 min, ${hourlyBros} in 1 hour`;
 
-    await createSafetyFlag(userId, 'RAPID_SENDING', severity, reason, {
+    await createSafetyFlag(userId, 'RATE_LIMIT', severity, reason, {
       recentBros,
       hourlyBros,
     });
@@ -114,7 +114,7 @@ async function checkMassBroAttack(
     const severity = uniqueReceivers > 30 ? 5 : uniqueReceivers > 20 ? 4 : 3;
     const reason = `Mass bro attack: ${uniqueReceivers} unique users in 5 minutes`;
 
-    await createSafetyFlag(userId, 'MASS_BRO_ATTACK', severity, reason, {
+    await createSafetyFlag(userId, 'SPAM', severity, reason, {
       uniqueReceivers,
       ...metadata,
     });
@@ -175,7 +175,7 @@ async function checkRepeatedUnwantedBros(userId: string): Promise<FlagResult> {
     const severity = flaggedReceivers > 3 ? 5 : flaggedReceivers > 1 ? 4 : 3;
     const reason = `Repeated unwanted bros to ${flaggedReceivers} users with low engagement`;
 
-    await createSafetyFlag(userId, 'REPEATED_UNWANTED_BROS', severity, reason, {
+    await createSafetyFlag(userId, 'ABUSE', severity, reason, {
       flaggedReceivers,
       totalSent: sentBros.length,
     });
@@ -235,7 +235,7 @@ async function checkBotBehavior(userId: string): Promise<FlagResult> {
     const severity = cv < 0.05 ? 5 : 4;
     const reason = `Suspicious bot-like behavior detected: consistent action timing (${cv.toFixed(4)} CV)`;
 
-    await createSafetyFlag(userId, 'BOT_BEHAVIOR', severity, reason, {
+    await createSafetyFlag(userId, 'SUSPICIOUS_ACTIVITY', severity, reason, {
       actionCount: logs.length,
       timingCV: cv,
     });
@@ -274,8 +274,9 @@ async function checkLocationAnomaly(
     return { isFlagged: false, severity: 0, reason: '', expiresAt: now };
   }
 
+  const locationUpdatedAt = user.locationUpdatedAt as Date;
   const timeDiffHours =
-    (now.getTime() - user.locationUpdatedAt.getTime()) / (1000 * 60 * 60);
+    (now.getTime() - locationUpdatedAt.getTime()) / (1000 * 60 * 60);
 
   // Calculate distance between old and new location
   const newLat = metadata.latitude as number;
@@ -291,7 +292,7 @@ async function checkLocationAnomaly(
     const severity = speed > 2000 ? 5 : 4;
     const reason = `Impossible travel detected: ${distance.toFixed(0)} km in ${timeDiffHours.toFixed(1)} hours (${speed.toFixed(0)} km/h)`;
 
-    await createSafetyFlag(userId, 'LOCATION_ANOMALY', severity, reason, {
+    await createSafetyFlag(userId, 'SUSPICIOUS_ACTIVITY', severity, reason, {
       distance,
       timeDiffHours,
       speed,
@@ -313,7 +314,7 @@ async function checkLocationAnomaly(
  */
 async function createSafetyFlag(
   userId: string,
-  type: 'RAPID_SENDING' | 'MASS_BRO_ATTACK' | 'REPEATED_UNWANTED_BROS' | 'BOT_BEHAVIOR' | 'LOCATION_ANOMALY',
+  type: 'RATE_LIMIT' | 'SUSPICIOUS_ACTIVITY' | 'ABUSE' | 'SPAM',
   severity: number,
   description: string,
   evidence: Record<string, unknown>
@@ -437,8 +438,8 @@ export async function cleanupResolvedFlags(daysToKeep: number = 30): Promise<num
 
   const result = await prisma.safetyFlag.deleteMany({
     where: {
-      isResolved: true,
-      resolvedAt: {
+      isActive: false,
+      expiresAt: {
         lt: cutoffDate,
       },
     },

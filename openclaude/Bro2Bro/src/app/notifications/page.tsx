@@ -59,9 +59,10 @@ export default function NotificationsPage() {
     try {
       const response = await notificationApi.getNotifications({ page, limit: 20 });
       if (response.success && response.data) {
-        setNotifications(prev => page === 1 ? response.data.notifications : [...prev, ...response.data.notifications]);
-        setUnreadCount(response.data.unreadCount);
-        setHasMore(response.data.pagination.hasMore);
+        const data = response.data as { notifications: Notification[]; unreadCount: number; pagination: { hasMore: boolean } };
+        setNotifications(prev => page === 1 ? data.notifications : [...prev, ...data.notifications]);
+        setUnreadCount(data.unreadCount);
+        setHasMore(data.pagination.hasMore);
       }
     } catch (error) {
       console.error('Failed to load notifications:', error);

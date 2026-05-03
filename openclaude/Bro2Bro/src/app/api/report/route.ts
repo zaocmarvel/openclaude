@@ -47,8 +47,9 @@ export async function POST(req: NextRequest) {
     // Check if already reported
     const existingReport = await prisma.report.findFirst({
       where: {
-        issuerId: auth.userId,
-        receiverId: userId,
+        reporterId: auth.userId,
+        targetType: 'USER',
+        targetId: userId,
         status: 'PENDING',
       },
     });
@@ -63,10 +64,11 @@ export async function POST(req: NextRequest) {
     // Create report
     const report = await prisma.report.create({
       data: {
-        issuerId: auth.userId,
-        receiverId: userId,
-        category,
+        reporterId: auth.userId,
+        targetType: 'USER',
+        targetId: userId,
         reason,
+        description: category,
         broId,
         status: 'PENDING',
       },
@@ -75,7 +77,8 @@ export async function POST(req: NextRequest) {
     // Check if user has multiple reports and auto-flag if needed
     const reportCount = await prisma.report.count({
       where: {
-        receiverId: userId,
+        targetType: 'USER',
+        targetId: userId,
         createdAt: {
           gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
         },
@@ -87,7 +90,7 @@ export async function POST(req: NextRequest) {
       await prisma.safetyFlag.create({
         data: {
           userId,
-          type: 'REPEATED_UNWANTED_BROS',
+          type: 'SUSPICIOUS_ACTIVITY',
           severity: Math.min(reportCount, 5),
           description: `User has ${reportCount} reports in the last 7 days`,
           evidence: { reportId: report.id, category },
@@ -116,9 +119,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const reports = await prisma.report.findMany({
-      where: { issuerId: auth.userId },
+      where: { reporterId: auth.userId },
       include: {
-        receiver: {
+        user: {
           select: {
             id: true,
             username: true,

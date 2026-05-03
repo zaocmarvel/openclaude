@@ -58,8 +58,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
         // Listen for notifications
         const cleanupNotification = onNotification((notification) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          toast(notification.title, {
+          const notif = notification as { title: string };
+          toast(notif.title, {
             icon: '🔔',
           });
         });

@@ -4,6 +4,7 @@ import { requireApiAuth } from '@/lib/auth';
 import { checkRateLimit, recordInteraction } from '@/lib/safety/rate-limit';
 import { createNotification } from '@/lib/services/notifications';
 import { updateStreak } from '@/lib/services/streaks';
+import { NotificationType } from '@prisma/client';
 
 // POST - Add a reaction to a bro
 export async function POST(
@@ -40,6 +41,7 @@ export async function POST(
       include: {
         sender: true,
         receiver: true,
+        reactions: true,
       },
     });
 
@@ -58,12 +60,21 @@ export async function POST(
       );
     }
 
+    // Check for existing reaction
+    const existingReaction = await prisma.reaction.findFirst({
+      where: {
+        broId: id,
+        userId: auth.userId,
+      },
+    });
+
     // Upsert reaction (update if exists, create if not)
     const reaction = await prisma.reaction.upsert({
       where: {
-        broId_userId: {
-          broId: id,
+        userId_broId_type: {
           userId: auth.userId,
+          broId: id,
+          type: existingReaction?.type || type,
         },
       },
       update: {
@@ -87,11 +98,11 @@ export async function POST(
     });
 
     // Update bro status and reaction count
-    const isNewReaction = !bro.reactions.find(r => r.userId === auth.userId);
+    const isNewReaction = !bro.reactions?.find(r => r.userId === auth.userId);
     await prisma.bro.update({
       where: { id },
       data: {
-        status: 'REACTED',
+        status: 'VIEWED',
         reactionCount: isNewReaction ? { increment: 1 } : undefined,
       },
     });
@@ -107,7 +118,7 @@ export async function POST(
       // Send notification to original sender
       await createNotification({
         userId: bro.senderId,
-        type: 'BRO_REACTION',
+        type: 'POST_LIKE' as NotificationType,
         title: `${bro.receiver.displayName || bro.receiver.username} bro'd you back!`,
         message: 'Your bro got a reaction! Keep the streak going!',
         broId: id,
