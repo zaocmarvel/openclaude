@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
     const blocks = await prisma.block.findMany({
       where: { blockerId: auth.userId },
       include: {
-        receiver: {
+        blocked: {
           select: {
             id: true,
             username: true,
