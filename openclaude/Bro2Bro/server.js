@@ -4,23 +4,14 @@ const next = require('next');
 const { Server } = require('socket.io');
 const { getToken } = require('next-auth/jwt');
 
+const { PrismaClient } = require('@prisma/client');
+function createPrismaClient() {
+  return new PrismaClient();
+}
+
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
 const port = process.env.PORT || 3000;
-
-// Helper to create Prisma client with adapter for Prisma 7
-function createPrismaClient() {
-  const { PrismaClient } = require('@prisma/client');
-  const { PrismaPg } = require('@prisma/adapter-pg');
-  const { Pool } = require('pg');
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
-
-  const adapter = new PrismaPg(pool);
-  return new PrismaClient({ adapter });
-}
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
