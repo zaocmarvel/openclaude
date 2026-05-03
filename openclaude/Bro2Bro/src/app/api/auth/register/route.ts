@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
       data: {
         email: email.toLowerCase(),
         username: username.toLowerCase(),
+        handle: username.toLowerCase(),
         displayName: displayName || username,
         password: hashedPassword,
         onboardingCompleted: false,
