@@ -3,10 +3,17 @@
  *
  * This module provides AI-generated bros for inactive users
  * to keep them engaged and help maintain streaks.
+ * Uses Google Gemini (free tier) for AI generation.
  */
 
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BroType, BroBotType, BroBotMessage } from '@/types';
 import prisma from '../db';
+
+// Initialize Gemini only if API key is available
+const genAI = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
 
 interface BroBotConfig {
   enabled: boolean;
@@ -163,7 +170,7 @@ export async function checkAndSendBroBot(userId: string): Promise<BroBotMessage 
   }
 
   // Generate the bro bot message
-  const message = generateBroBotMessage(config);
+  const message = await generateBroBotMessage(config);
 
   return message;
 }
@@ -171,7 +178,7 @@ export async function checkAndSendBroBot(userId: string): Promise<BroBotMessage 
 /**
  * Generate a bro bot message
  */
-function generateBroBotMessage(config: BroBotConfig): BroBotMessage {
+async function generateBroBotMessage(config: BroBotConfig): Promise<BroBotMessage> {
   // Determine best bro type based on user context
   // (This would be more sophisticated in production, using ML)
   const broTypes: BroType[] = ['RESPECT', 'FUNNY', 'MOTIVATIONAL', 'COLD', 'HEARTBREAK'];
@@ -181,16 +188,33 @@ function generateBroBotMessage(config: BroBotConfig): BroBotMessage {
   const prompts = BRO_PROMPTS[config.type][selectedType];
   const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
-  // Try to enhance with OpenAI if available
-  if (process.env.OPENAI_API_KEY) {
-    // In production, this would call the OpenAI API
-    // For now, we use the pre-written prompts
+  // Try to enhance with Gemini if available
+  let enhancedMessage = prompt;
+
+  if (genAI) {
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+      const aiPrompt = `Generate a very short, fun "bro" message (max 2 sentences) with a ${config.type.toLowerCase()} tone.
+Keep it casual like something a real friend would say. Don't use hashtags or emojis.
+Example style: "${prompt}"`;
+
+      const result = await model.generateContent(aiPrompt);
+      const generatedText = result.response.text().trim();
+
+      if (generatedText && generatedText.length > 5 && generatedText.length < 200) {
+        enhancedMessage = generatedText;
+      }
+    } catch (error) {
+      console.error('Gemini generation failed:', error);
+      // Use pre-written prompt as fallback
+    }
   }
 
   return {
     id: `bro-bot-${Date.now()}`,
     type: config.type,
-    message: prompt,
+    message: enhancedMessage,
     broType: selectedType,
     generatedAt: new Date(),
   };
