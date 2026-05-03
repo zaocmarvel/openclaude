@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, Chrome } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AtSign } from 'lucide-react';
 import { authApi } from '@/services/api';
 import toast from 'react-hot-toast';
 
@@ -230,7 +230,7 @@ export default function SignupPage() {
             onClick={() => window.location.href = '/api/auth/signin/google'}
             className="w-full bg-dark-bg border border-dark-border text-dark-text font-semibold py-3 rounded-xl hover:bg-dark-border transition-colors flex items-center justify-center gap-2"
           >
-            <Chrome className="w-5 h-5" />
+            <AtSign className="w-5 h-5" />
             Continue with Google
           </button>
         </div>
