@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const blocks = await prisma.block.findMany({
-      where: { issuerId: auth.userId },
+      where: { blockerId: auth.userId },
       include: {
         receiver: {
           select: {
@@ -137,8 +137,8 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.block.deleteMany({
       where: {
-        issuerId: auth.userId,
-        receiverId: userId,
+        blockerId: auth.userId,
+        blockedId: userId,
       },
     });
 
