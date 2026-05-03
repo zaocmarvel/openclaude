@@ -1,6 +1,10 @@
 import { defineConfig } from 'prisma/config'
 
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL
+const url = process.env.DIRECT_URL ?? process.env.DATABASE_URL
+
+if (!url) {
+  throw new Error('DATABASE_URL or DIRECT_URL environment variable is required')
+}
 
 export default defineConfig({
   earlyAccess: true,
@@ -9,14 +13,15 @@ export default defineConfig({
     adapter: async () => {
       const { PrismaPg } = await import('@prisma/adapter-pg')
       const { Pool } = await import('pg')
-
-      if (!connectionString) {
-        throw new Error('DATABASE_URL or DIRECT_URL environment variable is required')
-      }
-
-      const pool = new Pool({ connectionString })
+      const pool = new Pool({ connectionString: url })
       return new PrismaPg(pool)
     },
-    datasourceUrl: connectionString,
+    // For prisma migrate deploy
+    url: url,
+  },
+  datasource: {
+    db: {
+      url,
+    },
   },
 })
