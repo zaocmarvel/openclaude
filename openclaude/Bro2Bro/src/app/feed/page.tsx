@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Fire, Filter, TrendingUp, Clock, MapPin } from 'lucide-react';
+import { Flame, Filter, TrendingUp, Clock, MapPin } from 'lucide-react';
 import { feedApi } from '@/services/api';
 import { BroWithDetails } from '@/types';
 import FeedCard from '@/components/feed/FeedCard';
@@ -80,7 +80,7 @@ export default function FeedPage() {
         <div className="max-w-lg mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-black text-gradient flex items-center gap-2">
-              <Fire className="w-6 h-6 text-orange-500" />
+              <Flame className="w-6 h-6 text-orange-500" />
               Feed
             </h1>
           </div>
@@ -88,7 +88,7 @@ export default function FeedPage() {
           {/* Filter Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {[
-              { id: 'all', label: 'All', icon: Fire },
+              { id: 'all', label: 'All', icon: Flame },
               { id: 'trending', label: 'Trending', icon: TrendingUp },
               { id: 'recent', label: 'Recent', icon: Clock },
               { id: 'nearby', label: 'Nearby', icon: MapPin },
@@ -135,7 +135,7 @@ export default function FeedPage() {
 
         {!isLoadingFeed && bros.length === 0 && (
           <div className="text-center py-12">
-            <Fire className="w-16 h-16 text-dark-muted mx-auto mb-4" />
+            <Flame className="w-16 h-16 text-dark-muted mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-dark-text mb-2">
               No bros yet
             </h3>
