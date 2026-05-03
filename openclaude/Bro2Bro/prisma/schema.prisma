@@ -1,0 +1,502 @@
+// Bro2Bro Database Schema
+// Production-ready PostgreSQL schema with full feature support
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  displayName   String?
+  password      String?   // Hashed, null for OAuth users
+  image         String?   // Avatar URL
+  bio           String?   @db.VarChar(160)
+
+  // Location data for nearby features
+  latitude      Float?
+  longitude     Float?
+  locationUpdatedAt DateTime?
+
+  // Settings & preferences
+  soundEnabled  Boolean   @default(true)
+  notificationsEnabled Boolean @default(true)
+  isAnonymousMode Boolean @default(false)
+
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastActiveAt  DateTime  @default(now())
+
+  // Auth
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+
+  // Relationships
+  sentBros      Bro[]     @relation("SentBros")
+  receivedBros  Bro[]     @relation("ReceivedBros")
+  streaksAsUser1 Streak[] @relation("StreakUser1")
+  streaksAsUser2 Streak[] @relation("StreakUser2")
+  reactions     Reaction[]
+  blocksIssued  Block[]   @relation("BlockIssuer")
+  blocksReceived Block[]  @relation("BlockReceiver")
+  reportsIssued Report[]  @relation("ReportIssuer")
+  reportsReceived Report[] @relation("ReportReceiver")
+  interactionLogs InteractionLog[]
+  guessAttempts GuessAttempt[]
+  personalityProfile PersonalityProfile?
+  safetyFlags   SafetyFlag[]
+
+  @@index([email])
+  @@index([username])
+  @@index([latitude, longitude])
+  @@index([lastActiveAt])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// BRO FEATURES
+// ============================================
+
+enum BroType {
+  AGGRESSIVE
+  FUNNY
+  COLD
+  HEARTBREAK
+  RESPECT
+}
+
+enum BroStatus {
+  PENDING    // Received but not viewed
+  VIEWED     // Viewed by receiver
+  REACTED    // Receiver reacted
+  EXPIRED    // Timed out
+}
+
+model Bro {
+  id              String    @id @default(cuid())
+
+  // Sender
+  senderId        String
+  sender          User      @relation("SentBros", fields: [senderId], references: [id])
+
+  // Receiver
+  receiverId      String
+  receiver        User      @relation("ReceivedBros", fields: [receiverId], references: [id])
+
+  // Bro content
+  type            BroType
+  message         String?   @db.VarChar(280)
+
+  // Anonymous mode
+  isAnonymous     Boolean   @default(false)
+  revealedAt      DateTime? // When sender is revealed
+  guessedCorrectly Boolean? // If receiver guessed correctly
+
+  // Engagement
+  status          BroStatus @default(PENDING)
+  viewedAt        DateTime?
+
+  // Viral feed
+  reactionCount   Int       @default(0)
+  engagementScore Float     @default(0)
+  trendingRank    Int?
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime? // For timed bros
+
+  // Relationships
+  reactions       Reaction[]
+  guessAttempts   GuessAttempt[]
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([createdAt(sort: Desc)])
+  @@index([engagementScore(sort: Desc)])
+  @@index([trendingRank])
+  @@index([status])
+  @@map("bros")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+
+  broId     String
+  bro       Bro      @relation(fields: [broId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  type      ReactionType
+
+  createdAt DateTime @default(now())
+
+  @@unique([broId, userId])
+  @@index([broId])
+  @@index([userId])
+  @@map("reactions")
+}
+
+enum ReactionType {
+  BRO_BACK
+  LAUGH
+  IGNORE
+}
+
+// ============================================
+// STREAK SYSTEM
+// ============================================
+
+model Streak {
+  id        String   @id @default(cuid())
+
+  user1Id   String
+  user1     User     @relation("StreakUser1", fields: [user1Id], references: [id])
+
+  user2Id   String
+  user2     User     @relation("StreakUser2", fields: [user2Id], references: [id])
+
+  // Streak tracking
+  count     Int      @default(0)
+  bestCount Int      @default(0)
+
+  // Daily tracking
+  lastBroAt DateTime @default(now())
+  expiresAt DateTime // 24h from lastBroAt
+
+  // Stats
+  totalBros Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([expiresAt])
+  @@map("streaks")
+}
+
+// ============================================
+// ANONYMOUS GUESSING
+// ============================================
+
+model GuessAttempt {
+  id        String   @id @default(cuid())
+
+  broId     String
+  bro       Bro      @relation(fields: [broId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  guessedUserId String
+  isCorrect     Boolean
+
+  createdAt DateTime @default(now())
+
+  @@index([broId])
+  @@index([userId])
+  @@map("guess_attempts")
+}
+
+// ============================================
+// PERSONALITY PROFILING
+// ============================================
+
+model PersonalityProfile {
+  id        String   @id @default(cuid())
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Active hours (0-23)
+  mostActiveHour     Int?
+  leastActiveHour    Int?
+
+  // Bro type preferences
+  preferredBroType   BroType?
+  aggressiveCount    Int      @default(0)
+  funnyCount         Int      @default(0)
+  coldCount          Int      @default(0)
+  heartbreakCount    Int      @default(0)
+  respectCount       Int      @default(0)
+
+  // Response patterns
+  avgResponseTimeMinutes Int?
+  totalResponses     Int      @default(0)
+
+  // Engagement
+  engagementRate     Float    @default(0)
+  viralBrosCount     Int      @default(0)
+
+  // Calculated
+  updatedAt          DateTime @updatedAt
+  calculatedAt       DateTime @default(now())
+
+  @@index([userId])
+  @@map("personality_profiles")
+}
+
+// ============================================
+// INTERACTION TRACKING (for ML/Suggestions)
+// ============================================
+
+model InteractionLog {
+  id            String   @id @default(cuid())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetUserId  String?
+
+  // Interaction types
+  type          InteractionType
+  broType       BroType?
+
+  // Context
+  timeToRespondMinutes Int?
+  wasMutual     Boolean  @default(false)
+
+  // For scoring
+  score         Float    @default(0)
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId, targetUserId])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("interaction_logs")
+}
+
+enum InteractionType {
+  BRO_SENT
+  BRO_RECEIVED
+  REACTION_SENT
+  REACTION_RECEIVED
+  STREAK_EXTENDED
+  STREAK_BROKEN
+  PROFILE_VIEWED
+}
+
+// ============================================
+// SAFETY & MODERATION
+// ============================================
+
+model Block {
+  id          String   @id @default(cuid())
+
+  issuerId    String
+  issuer      User     @relation("BlockIssuer", fields: [issuerId], references: [id])
+
+  receiverId  String
+  receiver    User     @relation("BlockReceiver", fields: [receiverId], references: [id])
+
+  reason      String?  @db.VarChar(280)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([issuerId, receiverId])
+  @@index([issuerId])
+  @@index([receiverId])
+  @@map("blocks")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+
+  issuerId    String
+  issuer      User     @relation("ReportIssuer", fields: [issuerId], references: [id])
+
+  receiverId  String
+  receiver    User     @relation("ReportReceiver", fields: [receiverId], references: [id])
+
+  // Report details
+  category    ReportCategory
+  reason      String?  @db.VarChar(500)
+
+  // Related content
+  broId       String?
+
+  // Resolution
+  status      ReportStatus @default(PENDING)
+  resolvedBy  String?
+  resolution  String?
+  resolvedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([issuerId])
+  @@index([receiverId])
+  @@index([status])
+  @@map("reports")
+}
+
+enum ReportCategory {
+  HARASSMENT
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FAKE_ACCOUNT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+// Automated safety flags
+model SafetyFlag {
+  id          String   @id @default(cuid())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        SafetyFlagType
+  severity    Int      @default(1) // 1-5
+
+  // Details
+  description String?
+  evidence    Json?    // Store relevant data
+
+  // Resolution
+  isResolved  Boolean  @default(false)
+  resolvedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("safety_flags")
+}
+
+enum SafetyFlagType {
+  RAPID_SENDING
+  MASS_BRO_ATTACK
+  REPEATED_UNWANTED_BROS
+  BOT_BEHAVIOR
+  LOCATION_ANOMALY
+}
+
+// ============================================
+// RATE LIMITING
+// ============================================
+
+model RateLimitLog {
+  id          String   @id @default(cuid())
+
+  userId      String
+  action      String   // 'bro_send', 'reaction', etc.
+
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+
+  // Reset window
+  resetAt     DateTime
+
+  @@unique([userId, action, windowStart])
+  @@index([userId, action])
+  @@index([resetAt])
+  @@map("rate_limit_logs")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id          String   @id @default(cuid())
+
+  userId      String
+
+  type        NotificationType
+  title       String
+  message     String
+
+  // Related entities
+  broId       String?
+  senderId    String?
+
+  // Deep linking
+  actionUrl   String?
+
+  // Status
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  NEW_BRO
+  BRO_REACTION
+  STREAK_UPDATE
+  STREAK_BROKEN
+  GUESS_RESULT
+  BRO_REVEALED
+  TRENDING_BRO
+  SYSTEM
+}
