@@ -8,6 +8,20 @@ const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
 const port = process.env.PORT || 3000;
 
+// Helper to create Prisma client with adapter for Prisma 7
+function createPrismaClient() {
+  const { PrismaClient } = require('@prisma/client');
+  const { PrismaPg } = require('@prisma/adapter-pg');
+  const { Pool } = require('pg');
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
+}
+
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -71,7 +85,7 @@ app.prepare().then(() => {
     socket.on('bro:send', async (data, callback) => {
       try {
         const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = createPrismaClient();
 
         const bro = await prisma.bro.create({
           data: {
@@ -115,7 +129,7 @@ app.prepare().then(() => {
     socket.on('bro:react', async (data, callback) => {
       try {
         const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = createPrismaClient();
 
         // Upsert reaction
         const reaction = await prisma.reaction.upsert({
@@ -172,7 +186,7 @@ app.prepare().then(() => {
     socket.on('user:location', async (location) => {
       try {
         const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = createPrismaClient();
 
         await prisma.user.update({
           where: { id: socket.userId },
@@ -209,7 +223,7 @@ app.prepare().then(() => {
   async function updateUserActivity(userId, isOnline = true) {
     try {
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const prisma = createPrismaClient();
 
       await prisma.user.update({
         where: { id: userId },
@@ -226,7 +240,7 @@ app.prepare().then(() => {
   setInterval(async () => {
     try {
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const prisma = createPrismaClient();
 
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -278,7 +292,7 @@ app.prepare().then(() => {
   setInterval(async () => {
     try {
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const prisma = createPrismaClient();
 
       const now = new Date();
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
