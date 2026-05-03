@@ -5,13 +5,13 @@ import { requireApiAuth } from '@/lib/auth';
 // GET - Get a specific bro by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const bro = await prisma.bro.findUnique({
       where: { id },
@@ -99,13 +99,13 @@ export async function GET(
 // DELETE - Delete a bro (only sender can delete)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const bro = await prisma.bro.findUnique({
       where: { id },

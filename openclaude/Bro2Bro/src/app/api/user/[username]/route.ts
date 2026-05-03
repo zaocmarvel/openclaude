@@ -4,10 +4,10 @@ import prisma from '@/lib/db';
 // GET - Get public profile by username
 export async function GET(
   req: NextRequest,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   try {
-    const { username } = params;
+    const { username } = await params;
 
     const user = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },

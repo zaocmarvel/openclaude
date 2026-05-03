@@ -5,13 +5,13 @@ import { requireApiAuth } from '@/lib/auth';
 // GET - Get streak with specific user
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     // Find or create streak
     let streak = await prisma.streak.findFirst({

@@ -6,13 +6,13 @@ import { createNotification } from '@/lib/services/notifications';
 // POST - Guess who sent an anonymous bro
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const { guessedUserId } = await req.json();
 
     if (!guessedUserId) {
@@ -132,13 +132,13 @@ export async function POST(
 // GET - Get remaining guesses for a bro
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const bro = await prisma.bro.findUnique({
       where: { id },

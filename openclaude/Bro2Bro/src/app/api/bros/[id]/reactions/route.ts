@@ -8,7 +8,7 @@ import { updateStreak } from '@/lib/services/streaks';
 // POST - Add a reaction to a bro
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
@@ -23,7 +23,7 @@ export async function POST(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { type } = await req.json();
 
     // Validate reaction type
@@ -132,13 +132,13 @@ export async function POST(
 // DELETE - Remove a reaction
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireApiAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.reaction.deleteMany({
       where: {
