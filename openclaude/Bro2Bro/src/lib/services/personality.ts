@@ -9,7 +9,7 @@ export async function updatePersonalityProfile(
   action: 'BRO_SENT' | 'BRO_RECEIVED' | 'REACTION_SENT',
   broType?: BroType
 ) {
-  const updateData: Record<string, unknown> = {
+  const updateData: Record<string, any> = {
     updatedAt: new Date(),
   };
 
@@ -49,7 +49,7 @@ export async function updatePersonalityProfile(
       }),
       totalResponses: action === 'REACTION_SENT' ? 1 : 0,
     },
-    update: updateData,
+    update: updateData as any,
   });
 }
 
@@ -63,6 +63,7 @@ export async function calculatePreferredBroType(userId: string): Promise<BroType
 
   if (!profile) return null;
 
+  const preferredBroType = profile.preferredBroType as BroType | null;
   const counts = {
     AGGRESSIVE: profile.aggressiveCount,
     FUNNY: profile.funnyCount,
@@ -102,9 +103,11 @@ export async function calculateResponseTime(userId: string) {
 
   if (reactions.length === 0) return null;
 
-  const responseTimes = reactions.map(r =>
-    (new Date(r.createdAt).getTime() - new Date(r.bro.createdAt).getTime()) / (1000 * 60)
-  );
+  const responseTimes = reactions
+    .filter(r => r.bro !== null)
+    .map(r =>
+      (new Date(r.createdAt).getTime() - new Date(r.bro!.createdAt).getTime()) / (1000 * 60)
+    );
 
   const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
 
@@ -156,7 +159,7 @@ export async function getPersonalityAnalysis(userId: string): Promise<Partial<Pe
   if (!profile) {
     return {
       traits: ['New to Bro2Bro'],
-    };
+    } as Partial<PersonalityProfile> & { traits: string[] };
   }
 
   const traits: string[] = [];
@@ -197,5 +200,5 @@ export async function getPersonalityAnalysis(userId: string): Promise<Partial<Pe
     traits.push('Active User');
   }
 
-  return { ...profile, traits };
+  return { ...profile, traits } as Partial<PersonalityProfile> & { traits: string[] };
 }

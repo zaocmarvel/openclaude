@@ -149,9 +149,10 @@ export interface Reaction {
 
 export interface Streak {
   id: string;
-  userId: string;
-  otherUserId: string;
-  otherUser?: User;
+  user1Id: string;
+  user2Id: string;
+  user1?: User;
+  user2?: User;
   count: number;
   bestCount: number;
   lastBroAt: Date;
@@ -192,7 +193,7 @@ export interface FeedFilters {
 // ============================================
 
 export interface BroSuggestion {
-  user: User;
+  user: UserPublicProfile;
   score: number;
   rank: number;
   reasons: SuggestionReason[];

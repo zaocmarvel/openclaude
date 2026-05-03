@@ -32,9 +32,10 @@ async function fetchApi<T>(
     ...options.headers,
   };
 
-  if (session?.accessToken) {
-    headers.Authorization = `Bearer ${session.accessToken}`;
-  }
+  // Access token not available in next-auth by default
+  // if (session?.accessToken) {
+  //   headers.Authorization = `Bearer ${session.accessToken}`;
+  // }
 
   const fetchOptions: RequestInit = {
     method: options.method || 'GET',

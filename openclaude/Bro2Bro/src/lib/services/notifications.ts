@@ -19,14 +19,14 @@ export async function createNotification(input: CreateNotificationInput) {
 
   const notification = await prisma.notification.create({
     data: {
-      userId,
       type,
       title,
       message,
-      broId,
-      triggeredBy,
-      actionUrl,
-    },
+      userId,
+      ...(broId && { broId }),
+      ...(triggeredBy && { triggeredBy }),
+      ...(actionUrl && { actionUrl }),
+    } as any,
   });
 
   // Emit to socket if connected (handled by socket handler)

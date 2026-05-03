@@ -12,6 +12,18 @@ interface SuggestionInput {
 }
 
 /**
+ * Parse metadata JSON from InteractionLog
+ */
+function parseMetadata(log: InteractionLog): Record<string, unknown> {
+  if (!log.metadata) return {};
+  try {
+    return JSON.parse(log.metadata) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Calculate smart bro suggestions for a user
  * Uses multiple factors to rank who the user is most likely to bro
  */
@@ -35,7 +47,20 @@ export function calculateBroSuggestions(input: SuggestionInput): BroSuggestion[]
       );
 
       return {
-        user: user as UserPublicProfile,
+        user: {
+          id: user.id,
+          username: user.username,
+          displayName: user.displayName || undefined,
+          image: user.image || undefined,
+          bio: user.bio || undefined,
+          brosSent: 0,
+          brosReceived: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          isOnline: new Date(user.lastActiveAt).getTime() > Date.now() - 5 * 60 * 1000,
+          lastActiveAt: user.lastActiveAt,
+          ...(user.latitude && user.longitude ? { latitude: user.latitude, longitude: user.longitude } : {}),
+        } as UserPublicProfile,
         score,
         reasons,
         rank: 0,
@@ -66,27 +91,31 @@ function buildInteractionMap(logs: InteractionLog[]): Map<string, InteractionPat
   const map = new Map<string, InteractionPattern>();
 
   for (const log of logs) {
-    if (!log.targetUserId) continue;
+    const metadata = parseMetadata(log);
+    const targetUserId = (metadata.targetUserId as string) || log.targetId;
+    if (!targetUserId) continue;
 
-    const existing = map.get(log.targetUserId);
+    const existing = map.get(targetUserId);
+    const timeToRespond = (metadata.timeToRespondMinutes as number) || 0;
+    const score = (metadata.score as number) || 0;
 
     if (!existing) {
-      map.set(log.targetUserId, {
-        userId: log.targetUserId,
+      map.set(targetUserId, {
+        userId: targetUserId,
         totalInteractions: 1,
-        avgResponseTime: log.timeToRespondMinutes || 0,
+        avgResponseTime: timeToRespond,
         lastInteractionAt: log.createdAt,
-        interactionStrength: log.score || 0,
+        interactionStrength: score,
       });
     } else {
       // Update existing pattern
       const totalInteractions = existing.totalInteractions + 1;
       const avgResponseTime =
         ((existing.avgResponseTime * existing.totalInteractions) +
-          (log.timeToRespondMinutes || 0)) /
+          timeToRespond) /
         totalInteractions;
 
-      map.set(log.targetUserId, {
+      map.set(targetUserId, {
         ...existing,
         totalInteractions,
         avgResponseTime,
@@ -94,7 +123,7 @@ function buildInteractionMap(logs: InteractionLog[]): Map<string, InteractionPat
           log.createdAt > existing.lastInteractionAt
             ? log.createdAt
             : existing.lastInteractionAt,
-        interactionStrength: existing.interactionStrength + (log.score || 0),
+        interactionStrength: existing.interactionStrength + score,
       });
     }
   }
@@ -327,8 +356,12 @@ function predictBestBroType(
   const typeCounts: Record<string, number> = {};
 
   for (const log of interactionLogs) {
-    if (log.targetUserId === targetUserId && log.broType) {
-      typeCounts[log.broType] = (typeCounts[log.broType] || 0) + 1;
+    const metadata = parseMetadata(log);
+    const logTargetUserId = (metadata.targetUserId as string) || log.targetId;
+    const broType = metadata.broType as string;
+
+    if (logTargetUserId === targetUserId && broType) {
+      typeCounts[broType] = (typeCounts[broType] || 0) + 1;
     }
   }
 
@@ -351,7 +384,20 @@ export function getNearbySuggestions(
     .filter(u => u.user.id !== currentUserId)
     .slice(0, limit)
     .map((item, index) => ({
-      user: item.user as UserPublicProfile,
+      user: {
+        id: item.user.id,
+        username: item.user.username,
+        displayName: item.user.displayName || undefined,
+        image: item.user.image || undefined,
+        bio: item.user.bio || undefined,
+        brosSent: 0,
+        brosReceived: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        isOnline: new Date(item.user.lastActiveAt).getTime() > Date.now() - 5 * 60 * 1000,
+        lastActiveAt: item.user.lastActiveAt,
+        ...(item.user.latitude && item.user.longitude ? { latitude: item.user.latitude, longitude: item.user.longitude } : {}),
+      } as UserPublicProfile,
       score: Math.max(0, 20 - item.distance / 100), // Closer = higher score
       rank: index + 1,
       reasons: [
@@ -379,7 +425,7 @@ export function getStreakSuggestions(
   streaks: Streak[],
   limit: number = 5
 ): Array<{ streak: Streak; urgency: 'critical' | 'high' | 'medium' | 'low'; hoursRemaining: number }> {
-  return streaks
+  const mapped = streaks
     .map(streak => {
       const hoursRemaining =
         (new Date(streak.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60);
@@ -391,8 +437,10 @@ export function getStreakSuggestions(
       else urgency = 'low';
 
       return { streak, urgency, hoursRemaining };
-    })
-    .filter(item => hoursRemaining > 0)
+    });
+
+  return mapped
+    .filter(item => item.hoursRemaining > 0)
     .sort((a, b) => a.hoursRemaining - b.hoursRemaining)
     .slice(0, limit);
 }
@@ -411,13 +459,18 @@ export function predictEngagement(
   const maxScore = 100;
 
   // Past interaction rate
-  const interactionsWithTarget = interactionLogs.filter(
-    log => log.targetUserId === targetUserId
-  );
+  const interactionsWithTarget = interactionLogs.filter(log => {
+    const metadata = parseMetadata(log);
+    const logTargetUserId = (metadata.targetUserId as string) || log.targetId;
+    return logTargetUserId === targetUserId;
+  });
 
   if (interactionsWithTarget.length > 0) {
     const responseRate =
-      interactionsWithTarget.filter(log => log.type === 'REACTION_SENT').length /
+      interactionsWithTarget.filter(log => {
+        const metadata = parseMetadata(log);
+        return metadata.type === 'REACTION_SENT';
+      }).length /
       interactionsWithTarget.length;
     score += responseRate * 40;
   }
@@ -435,8 +488,11 @@ export function predictEngagement(
 
   // Response time bonus
   const responseTimes = interactionsWithTarget
-    .filter(log => log.timeToRespondMinutes !== null)
-    .map(log => log.timeToRespondMinutes!);
+    .map(log => {
+      const metadata = parseMetadata(log);
+      return metadata.timeToRespondMinutes as number | undefined;
+    })
+    .filter((t): t is number => t !== undefined);
 
   if (responseTimes.length > 0) {
     const avgResponseTime =
@@ -446,7 +502,7 @@ export function predictEngagement(
   }
 
   // Recency bonus
-  const lastInteraction = interactionsWithTarget[0];
+  const lastInteraction = interactionsWithTarget[interactionsWithTarget.length - 1];
   if (lastInteraction) {
     const hoursSince =
       (Date.now() - new Date(lastInteraction.createdAt).getTime()) / (1000 * 60 * 60);

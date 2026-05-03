@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { ClientToServerEvents, ServerToClientEvents } from '@/types';
+import { ClientToServerEvents, ServerToClientEvents, BroType, ReactionType } from '@/types';
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
@@ -114,14 +114,14 @@ export function onUserOffline(
 
 // Emit helpers
 export function sendBro(
-  data: { receiverId: string; type: string; message?: string; isAnonymous: boolean },
+  data: { receiverId: string; type: BroType; message?: string; isAnonymous: boolean },
   callback: (response: { success: boolean; bro?: unknown; error?: string }) => void
 ): void {
   socket?.emit('bro:send', data, callback);
 }
 
 export function reactToBro(
-  data: { broId: string; type: string },
+  data: { broId: string; type: ReactionType },
   callback: (response: { success: boolean; reaction?: unknown; error?: string }) => void
 ): void {
   socket?.emit('bro:react', data, callback);
