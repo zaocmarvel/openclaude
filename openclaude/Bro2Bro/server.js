@@ -2,6 +2,7 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const { Server } = require('socket.io');
+const { getToken } = require('next-auth/jwt');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -33,21 +34,22 @@ app.prepare().then(() => {
 
   // Socket authentication middleware
   io.use(async (socket, next) => {
-    const token = socket.handshake.auth.token;
-
-    if (!token) {
-      return next(new Error('Authentication error'));
-    }
-
     try {
-      // Verify token (simplified - in production use proper JWT verification)
-      const { getToken } = require('next-auth/jwt');
+      const token = await getToken({
+        req: socket.handshake,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+
+      if (!token || !token.sub) {
+        return next(new Error('Authentication error'));
+      }
 
       // Store user info on socket
       socket.userId = token.sub;
       socket.user = token;
       next();
     } catch (err) {
+      console.error('Socket auth error:', err);
       next(new Error('Authentication error'));
     }
   });
