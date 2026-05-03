@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -19,53 +18,39 @@ model User {
   email         String    @unique
   username      String    @unique
   displayName   String?
-  password      String?   // Hashed, null for OAuth users
-  image         String?   // Avatar URL
-  bio           String?   @db.VarChar(160)
-
-  // Location data for nearby features
-  latitude      Float?
-  longitude     Float?
-  locationUpdatedAt DateTime?
-
-  // Settings & preferences
-  soundEnabled  Boolean   @default(true)
-  notificationsEnabled Boolean @default(true)
-  isAnonymousMode Boolean @default(false)
-
-  // Onboarding
-  onboardingCompleted Boolean @default(false)
-
-  // Timestamps
+  handle        String    @unique
+  password      String?
+  bio           String?
+  avatar        String?
+  banner        String?
+  isVerified    Boolean   @default(false)
+  isPrivate     Boolean   @default(false)
+  emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  lastActiveAt  DateTime  @default(now())
 
-  // Auth
-  emailVerified DateTime?
+  // Relations
   accounts      Account[]
   sessions      Session[]
-
-  // Relationships
-  sentBros      Bro[]     @relation("SentBros")
-  receivedBros  Bro[]     @relation("ReceivedBros")
-  streaksAsUser1 Streak[] @relation("StreakUser1")
-  streaksAsUser2 Streak[] @relation("StreakUser2")
+  posts         Post[]
+  comments      Comment[]
   reactions     Reaction[]
-  blocksIssued  Block[]   @relation("BlockIssuer")
-  blocksReceived Block[]  @relation("BlockReceiver")
-  reportsIssued Report[]  @relation("ReportIssuer")
-  reportsReceived Report[] @relation("ReportReceiver")
-  interactionLogs InteractionLog[]
-  guessAttempts GuessAttempt[]
-  personalityProfile PersonalityProfile?
-  safetyFlags   SafetyFlag[]
 
-  @@index([email])
-  @@index([username])
-  @@index([latitude, longitude])
-  @@index([lastActiveAt])
-  @@map("users")
+  // Friend/Follow relations
+  followers     Follow[] @relation("UserFollowers")
+  following     Follow[] @relation("UserFollowing")
+
+  // Chat relations
+  chatMembers   ChatMember[]
+  messages      Message[]
+
+  // Notifications
+  notifications Notification[] @relation("UserNotifications")
+  triggeredNotifications Notification[] @relation("NotificationTrigger")
+
+  // Blocked users
+  blocked       Block[] @relation("UserBlocked")
+  blockedBy     Block[] @relation("UserBlockedBy")
 }
 
 model Account {
@@ -85,8 +70,6 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
-  @@map("accounts")
 }
 
 model Session {
@@ -95,9 +78,6 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("sessions")
 }
 
 model VerificationToken {
@@ -106,357 +86,248 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-  @@map("verification_tokens")
 }
 
 // ============================================
-// BRO FEATURES
+// SOCIAL FEATURES
 // ============================================
 
-enum BroType {
-  AGGRESSIVE
-  FUNNY
-  COLD
-  HEARTBREAK
-  RESPECT
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  status      FollowStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId, status])
 }
 
-enum BroStatus {
-  PENDING    // Received but not viewed
-  VIEWED     // Viewed by receiver
-  REACTED    // Receiver reacted
-  EXPIRED    // Timed out
+enum FollowStatus {
+  PENDING   // For private accounts
+  ACCEPTED  // Follow confirmed
 }
 
-model Bro {
-  id              String    @id @default(cuid())
-
-  // Sender
-  senderId        String
-  sender          User      @relation("SentBros", fields: [senderId], references: [id])
-
-  // Receiver
-  receiverId      String
-  receiver        User      @relation("ReceivedBros", fields: [receiverId], references: [id])
-
-  // Bro content
-  type            BroType
-  message         String?   @db.VarChar(280)
-
-  // Anonymous mode
-  isAnonymous     Boolean   @default(false)
-  revealedAt      DateTime? // When sender is revealed
-  guessedCorrectly Boolean? // If receiver guessed correctly
-
-  // Engagement
-  status          BroStatus @default(PENDING)
-  viewedAt        DateTime?
-
-  // Viral feed
-  reactionCount   Int       @default(0)
-  engagementScore Float     @default(0)
-  trendingRank    Int?
-
-  // Timestamps
-  createdAt       DateTime  @default(now())
-  expiresAt       DateTime? // For timed bros
-
-  // Relationships
-  reactions       Reaction[]
-  guessAttempts   GuessAttempt[]
-
-  @@index([senderId, createdAt])
-  @@index([receiverId, createdAt])
-  @@index([createdAt(sort: Desc)])
-  @@index([engagementScore(sort: Desc)])
-  @@index([trendingRank])
-  @@index([status])
-  @@map("bros")
-}
-
-model Reaction {
+model Block {
   id        String   @id @default(cuid())
-
-  broId     String
-  bro       Bro      @relation(fields: [broId], references: [id], onDelete: Cascade)
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-
-  type      ReactionType
-
+  blockerId String
+  blockedId String
   createdAt DateTime @default(now())
 
-  @@unique([broId, userId])
-  @@index([broId])
-  @@index([userId])
-  @@map("reactions")
+  blocker User @relation("UserBlocked", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("UserBlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+// ============================================
+// CONTENT MODELS
+// ============================================
+
+model Post {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+  authorId    String
+  parentId    String?   // For replies
+  replyToId   String?   // For replies to specific post
+  mediaCount  Int       @default(0)
+  isDeleted   Boolean   @default(false)
+  isPinned    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent      Post?      @relation("PostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Post[]     @relation("PostReplies")
+  replyTo     Post?      @relation("PostReplyTo", fields: [replyToId], references: [id], onDelete: Cascade)
+  replyFrom   Post[]     @relation("PostReplyTo")
+  media       Media[]
+  reactions   Reaction[]
+  comments    Comment[]
+
+  // Analytics (denormalized for performance)
+  stats       PostStats?
+
+  @@index([authorId, createdAt])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Media {
+  id        String     @id @default(cuid())
+  postId    String
+  type      MediaType
+  url       String
+  thumbnail String?    // For videos
+  width     Int?
+  height    Int?
+  size      Int?       // File size in bytes
+  duration  Float?     // For videos (seconds)
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, order])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  GIF
+}
+
+model PostStats {
+  id           String @id @default(cuid())
+  postId       String @unique
+  views        Int    @default(0)
+  uniqueViews  Int    @default(0)
+  impressions  Int    @default(0)
+  shares       Int    @default(0)
+  bookmarks    Int    @default(0)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// ENGAGEMENT MODELS
+// ============================================
+
+model Reaction {
+  id        String       @id @default(cuid())
+  type      ReactionType
+  userId    String
+  postId    String?
+  commentId String?
+  createdAt DateTime     @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, type])
+  @@unique([userId, commentId, type])
+  @@index([postId, type])
+  @@index([commentId, type])
 }
 
 enum ReactionType {
-  BRO_BACK
-  LAUGH
-  IGNORE
+  LIKE
+  LOVE
+  HAHA
+  WOW
+  SAD
+  ANGRY
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  content    String    @db.Text
+  authorId   String
+  postId     String
+  parentId   String?   // For nested replies
+  mediaCount Int       @default(0)
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
+  reactions Reaction[]
+  media     Media[]
+
+  @@index([postId, createdAt])
+  @@index([parentId])
 }
 
 // ============================================
-// STREAK SYSTEM
+// CHAT/Messaging
 // ============================================
 
-model Streak {
-  id        String   @id @default(cuid())
+model Chat {
+  id          String      @id @default(cuid())
+  name        String?
+  avatar      String?
+  isGroup     Boolean     @default(false)
+  createdBy   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  user1Id   String
-  user1     User     @relation("StreakUser1", fields: [user1Id], references: [id])
+  members     ChatMember[]
+  messages    Message[]
 
-  user2Id   String
-  user2     User     @relation("StreakUser2", fields: [user2Id], references: [id])
-
-  // Streak tracking
-  count     Int      @default(0)
-  bestCount Int      @default(0)
-
-  // Daily tracking
-  lastBroAt DateTime @default(now())
-  expiresAt DateTime // 24h from lastBroAt
-
-  // Stats
-  totalBros Int      @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([user1Id, user2Id])
-  @@index([user1Id])
-  @@index([user2Id])
-  @@index([expiresAt])
-  @@map("streaks")
+  @@index([updatedAt])
 }
 
-// ============================================
-// ANONYMOUS GUESSING
-// ============================================
+model ChatMember {
+  id          String    @id @default(cuid())
+  chatId      String
+  userId      String
+  role        ChatRole  @default(MEMBER)
+  isMuted     Boolean   @default(false)
+  joinedAt    DateTime  @default(now())
+  lastReadAt  DateTime  @default(now())
 
-model GuessAttempt {
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId, lastReadAt])
+}
+
+enum ChatRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  chatId      String
+  senderId    String
+  content     String?       @db.Text
+  type        MessageType   @default(TEXT)
+  mediaUrl    String?
+  replyToId   String?
+  isEdited    Boolean       @default(false)
+  isDeleted   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  chat        Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender      User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo     Message?      @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: Cascade)
+  replies     Message[]     @relation("MessageReplies")
+  readBy      MessageRead[]
+
+  @@index([chatId, createdAt])
+  @@index([senderId])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  SYSTEM
+}
+
+model MessageRead {
   id        String   @id @default(cuid())
-
-  broId     String
-  bro       Bro      @relation(fields: [broId], references: [id], onDelete: Cascade)
-
+  messageId String
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  readAt    DateTime @default(now())
 
-  guessedUserId String
-  isCorrect     Boolean
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-
-  @@index([broId])
-  @@index([userId])
-  @@map("guess_attempts")
-}
-
-// ============================================
-// PERSONALITY PROFILING
-// ============================================
-
-model PersonalityProfile {
-  id        String   @id @default(cuid())
-
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Active hours (0-23)
-  mostActiveHour     Int?
-  leastActiveHour    Int?
-
-  // Bro type preferences
-  preferredBroType   BroType?
-  aggressiveCount    Int      @default(0)
-  funnyCount         Int      @default(0)
-  coldCount          Int      @default(0)
-  heartbreakCount    Int      @default(0)
-  respectCount       Int      @default(0)
-
-  // Response patterns
-  avgResponseTimeMinutes Int?
-  totalResponses     Int      @default(0)
-
-  // Engagement
-  engagementRate     Float    @default(0)
-  viralBrosCount     Int      @default(0)
-
-  // Calculated
-  updatedAt          DateTime @updatedAt
-  calculatedAt       DateTime @default(now())
-
-  @@index([userId])
-  @@map("personality_profiles")
-}
-
-// ============================================
-// INTERACTION TRACKING (for ML/Suggestions)
-// ============================================
-
-model InteractionLog {
-  id            String   @id @default(cuid())
-
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  targetUserId  String?
-
-  // Interaction types
-  type          InteractionType
-  broType       BroType?
-
-  // Context
-  timeToRespondMinutes Int?
-  wasMutual     Boolean  @default(false)
-
-  // For scoring
-  score         Float    @default(0)
-
-  createdAt     DateTime @default(now())
-
-  @@index([userId, targetUserId])
-  @@index([userId, createdAt])
-  @@index([type])
-  @@map("interaction_logs")
-}
-
-enum InteractionType {
-  BRO_SENT
-  BRO_RECEIVED
-  REACTION_SENT
-  REACTION_RECEIVED
-  STREAK_EXTENDED
-  STREAK_BROKEN
-  PROFILE_VIEWED
-}
-
-// ============================================
-// SAFETY & MODERATION
-// ============================================
-
-model Block {
-  id          String   @id @default(cuid())
-
-  issuerId    String
-  issuer      User     @relation("BlockIssuer", fields: [issuerId], references: [id])
-
-  receiverId  String
-  receiver    User     @relation("BlockReceiver", fields: [receiverId], references: [id])
-
-  reason      String?  @db.VarChar(280)
-
-  createdAt   DateTime @default(now())
-
-  @@unique([issuerId, receiverId])
-  @@index([issuerId])
-  @@index([receiverId])
-  @@map("blocks")
-}
-
-model Report {
-  id          String   @id @default(cuid())
-
-  issuerId    String
-  issuer      User     @relation("ReportIssuer", fields: [issuerId], references: [id])
-
-  receiverId  String
-  receiver    User     @relation("ReportReceiver", fields: [receiverId], references: [id])
-
-  // Report details
-  category    ReportCategory
-  reason      String?  @db.VarChar(500)
-
-  // Related content
-  broId       String?
-
-  // Resolution
-  status      ReportStatus @default(PENDING)
-  resolvedBy  String?
-  resolution  String?
-  resolvedAt  DateTime?
-
-  createdAt   DateTime @default(now())
-
-  @@index([issuerId])
-  @@index([receiverId])
-  @@index([status])
-  @@map("reports")
-}
-
-enum ReportCategory {
-  HARASSMENT
-  SPAM
-  INAPPROPRIATE_CONTENT
-  FAKE_ACCOUNT
-  OTHER
-}
-
-enum ReportStatus {
-  PENDING
-  REVIEWING
-  RESOLVED
-  DISMISSED
-}
-
-// Automated safety flags
-model SafetyFlag {
-  id          String   @id @default(cuid())
-
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type        SafetyFlagType
-  severity    Int      @default(1) // 1-5
-
-  // Details
-  description String?
-  evidence    Json?    // Store relevant data
-
-  // Resolution
-  isResolved  Boolean  @default(false)
-  resolvedAt  DateTime?
-
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-  @@index([type])
-  @@index([createdAt])
-  @@map("safety_flags")
-}
-
-enum SafetyFlagType {
-  RAPID_SENDING
-  MASS_BRO_ATTACK
-  REPEATED_UNWANTED_BROS
-  BOT_BEHAVIOR
-  LOCATION_ANOMALY
-}
-
-// ============================================
-// RATE LIMITING
-// ============================================
-
-model RateLimitLog {
-  id          String   @id @default(cuid())
-
-  userId      String
-  action      String   // 'bro_send', 'reaction', etc.
-
-  count       Int      @default(1)
-  windowStart DateTime @default(now())
-
-  // Reset window
-  resetAt     DateTime
-
-  @@unique([userId, action, windowStart])
-  @@index([userId, action])
-  @@index([resetAt])
-  @@map("rate_limit_logs")
+  @@unique([messageId, userId])
 }
 
 // ============================================
@@ -464,39 +335,57 @@ model RateLimitLog {
 // ============================================
 
 model Notification {
-  id          String   @id @default(cuid())
-
-  userId      String
-
+  id          String           @id @default(cuid())
   type        NotificationType
-  title       String
-  message     String
+  userId      String           // Recipient
+  triggeredBy String           // Who triggered
+  postId      String?
+  commentId   String?
+  messageId   String?
+  metadata    String?          @db.Text // JSON for extra data
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
 
-  // Related entities
-  broId       String?
-  senderId    String?
+  user        User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  trigger     User @relation("NotificationTrigger", fields: [triggeredBy], references: [id], onDelete: Cascade)
 
-  // Deep linking
-  actionUrl   String?
-
-  // Status
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
-
-  createdAt   DateTime @default(now())
-
-  @@index([userId, isRead])
-  @@index([createdAt(sort: Desc)])
-  @@map("notifications")
+  @@index([userId, isRead, createdAt])
+  @@index([triggeredBy])
 }
 
 enum NotificationType {
-  NEW_BRO
-  BRO_REACTION
-  STREAK_UPDATE
-  STREAK_BROKEN
-  GUESS_RESULT
-  BRO_REVEALED
-  TRENDING_BRO
-  SYSTEM
+  FOLLOW
+  FOLLOW_REQUEST
+  POST_LIKE
+  POST_COMMENT
+  COMMENT_REPLY
+  MENTION
+  REPOST
+  MESSAGE
+  GROUP_INVITE
+}
+
+// ============================================
+// FEATURED & DISCOVERY
+// ============================================
+
+model Trending {
+  id          String   @id @default(cuid())
+  hashtag     String   @unique
+  postCount   Int      @default(0)
+  score       Float    @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@index([score])
+}
+
+model FeaturedUser {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  reason    String?
+  priority  Int      @default(0)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([priority, createdAt])
 }
