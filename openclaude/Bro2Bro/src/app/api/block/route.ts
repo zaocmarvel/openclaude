@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
       data: {
         issuerId: auth.userId,
         receiverId: userId,
-        reason,
       },
     });
 

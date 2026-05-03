@@ -1,4 +1,4 @@
-# Bro2Bro 🔥
+# Bro2Bro 
 
 A viral social app where users send instant "bros" - one tap, one connection, infinite fun.
 

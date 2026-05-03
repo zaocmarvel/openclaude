@@ -27,7 +27,6 @@ export async function GET(req: NextRequest) {
     const bros = await prisma.bro.findMany({
       where,
       orderBy: [
-        { trendingRank: 'asc' },
         { engagementScore: 'desc' },
         { createdAt: 'desc' },
       ],

@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
         ? 'Someone sent you a bro. Can you guess who?'
         : `${bro.sender.displayName || bro.sender.username} sent you a ${type.toLowerCase()} bro!`,
       broId: bro.id,
-      senderId: isAnonymous ? undefined : auth.userId,
+      triggeredBy: isAnonymous ? undefined : auth.userId,
     });
 
     return NextResponse.json({

@@ -7,7 +7,7 @@ interface CreateNotificationInput {
   title: string;
   message: string;
   broId?: string;
-  senderId?: string;
+  triggeredBy?: string;
   actionUrl?: string;
 }
 
@@ -15,7 +15,7 @@ interface CreateNotificationInput {
  * Create a new notification
  */
 export async function createNotification(input: CreateNotificationInput) {
-  const { userId, type, title, message, broId, senderId, actionUrl } = input;
+  const { userId, type, title, message, broId, triggeredBy, actionUrl } = input;
 
   const notification = await prisma.notification.create({
     data: {
@@ -24,7 +24,7 @@ export async function createNotification(input: CreateNotificationInput) {
       title,
       message,
       broId,
-      senderId,
+      triggeredBy,
       actionUrl,
     },
   });

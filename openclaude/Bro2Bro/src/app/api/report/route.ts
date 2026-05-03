@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
           type: 'SUSPICIOUS_ACTIVITY',
           severity: Math.min(reportCount, 5),
           description: `User has ${reportCount} reports in the last 7 days`,
-          evidence: { reportId: report.id, category },
+          evidence: JSON.stringify({ reportId: report.id, category }),
         },
       });
     }

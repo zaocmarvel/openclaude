@@ -338,7 +338,7 @@ export interface SafetyFlag {
   severity: number;
   description?: string;
   evidence?: Record<string, unknown>;
-  isResolved: boolean;
+  isActive: boolean;
   resolvedAt?: Date;
   createdAt: Date;
 }

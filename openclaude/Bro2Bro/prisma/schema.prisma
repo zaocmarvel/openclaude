@@ -28,9 +28,13 @@ model User {
   isPrivate          Boolean   @default(false)
   emailVerified      DateTime?
   onboardingCompleted Boolean   @default(false)
+  soundEnabled  Boolean   @default(true)
+  notificationsEnabled Boolean @default(true)
+  isAnonymousMode Boolean  @default(false)
   lastActiveAt  DateTime  @default(now())
   latitude     Float?
   longitude    Float?
+  locationUpdatedAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -179,6 +183,7 @@ model Bro {
   comments        Comment[]
   guessAttempts   GuessAttempt[]
   reports         Report[]
+  notifications   Notification[]
 
   // Analytics
   stats           BroStats?
@@ -437,15 +442,22 @@ model Notification {
   postId      String?
   commentId   String?
   messageId   String?
+  broId       String?
+  title       String
+  message     String           @db.Text
+  actionUrl   String?
   metadata    String?          @db.Text // JSON for extra data
   isRead      Boolean          @default(false)
+  readAt      DateTime?
   createdAt   DateTime         @default(now())
 
   user        User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   trigger     User @relation("NotificationTrigger", fields: [triggeredBy], references: [id], onDelete: Cascade)
+  bro         Bro?  @relation(fields: [broId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead, createdAt])
   @@index([triggeredBy])
+  @@index([broId])
 }
 
 enum NotificationType {
@@ -458,6 +470,15 @@ enum NotificationType {
   REPOST
   MESSAGE
   GROUP_INVITE
+  NEW_BRO
+  BRO_RECEIVED
+  BRO_REACTION
+  STREAK_UPDATE
+  STREAK_BROKEN
+  GUESS_RESULT
+  BRO_REVEALED
+  TRENDING_BRO
+  SYSTEM
 }
 
 // ============================================
@@ -609,6 +630,7 @@ model SafetyFlag {
   type        SafetyFlagType
   severity    Int          @default(1) // 1-5
   description String?      @db.Text
+  evidence    String?      @db.Text // JSON for extra data
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   expiresAt   DateTime?

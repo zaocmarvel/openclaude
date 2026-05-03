@@ -325,7 +325,7 @@ async function createSafetyFlag(
       type,
       severity,
       description,
-      evidence,
+      evidence: JSON.stringify(evidence),
     },
   });
 
@@ -373,7 +373,7 @@ export async function getUserSafetyStatus(userId: string) {
     prisma.safetyFlag.findMany({
       where: {
         userId,
-        isResolved: false,
+        isActive: true,
       },
       orderBy: { createdAt: 'desc' },
     }),
@@ -387,7 +387,7 @@ export async function getUserSafetyStatus(userId: string) {
     }),
     prisma.report.count({
       where: {
-        receiverId: userId,
+        userId: userId,
         createdAt: {
           gte: subHours(now, 7 * 24),
         },

@@ -122,7 +122,7 @@ export async function POST(
         title: `${bro.receiver.displayName || bro.receiver.username} bro'd you back!`,
         message: 'Your bro got a reaction! Keep the streak going!',
         broId: id,
-        senderId: auth.userId,
+        triggeredBy: auth.userId,
       });
     }
 
